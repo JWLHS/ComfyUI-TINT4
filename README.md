@@ -180,7 +180,7 @@ python analyse_quant.py 模型路径.safetensors 模型类型
 ## 性能参考
 | 模型 | 原始大小 | INT4 大小 | 说明 |
 |---|---|---|---|
-| Krea2 Turbo (28 层) | ~11 GB | ~6 GB | 推理速度接近原生 |
+| Krea2 Turbo (28 层) | ~24 GB | ~6 GB | 推理速度接近原生 |
 | Z-Image Turbo (30 层) | ~11 GB | ~5 GB | dim=3840 大模型，VRAM 占用较高但已比 FP16 少 ~30% |
 > 实测环境: Intel Arc A770 16GB, torch 2.12.1+xpu, ComfyUI 0.27.0, LOW_VRAM 模式。
 > 实际 VRAM / 速度因分辨率和采样步数而异。
