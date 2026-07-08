@@ -1,5 +1,5 @@
 """
-TINT4 v8.1 — torchao INT4 quantized model inference.
+TINT4 v8.3 — torchao INT4 quantized model inference.
 """
 import sys
 

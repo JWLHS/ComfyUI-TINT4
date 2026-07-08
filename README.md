@@ -1,4 +1,4 @@
-```markdown
+</>
 # TINT4 — torchao INT4 量化推理 for ComfyUI
 
 基于 [torchao](https://github.com/pytorch/ao) 的模型量化与推理插件。支持 Intel XPU / NVIDIA CUDA / AMD ROCm。
@@ -192,4 +192,4 @@ python analyse_quant.py 模型路径.safetensors 模型类型
 ## 许可证
 
 MIT
-```
+</>
