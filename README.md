@@ -7,23 +7,23 @@
 ## 安装
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  1. 安装插件                                              │
-│     ComfyUI Manager 搜 "TINT4" 安装                       │
-│     或 git clone 到 custom_nodes/ComfyUI-TINT4-XPU       │
-├─────────────────────────────────────────────────────────┤
-│  2. 安装 torchao 0.17.0+xpu（仅 Intel XPU 用户）         │
-│     从你的 Intel 分发渠道安装                              │
-│     NVIDIA/CUDA 用户: pip install torchao>=0.17.0        │
-│     AMD/ROCm 用户: pip install torchao>=0.17.0           │
-│                   --index-url https://download.pytorch.org/whl/rocm6.4 │
-├─────────────────────────────────────────────────────────┤
-│  3. 运行修复脚本                                          │
-│     双击 custom_nodes/ComfyUI-TINT4-XPU/                 │
-│          fix_torchao_xpu.bat                             │
-├─────────────────────────────────────────────────────────┤
-│  4. 重启 ComfyUI                                         │
-└─────────────────────────────────────────────────────────┘
+
+  1. 安装插件                                              
+     ComfyUI Manager 搜 "TINT4" 安装                       
+     或 git clone 到 custom_nodes/ComfyUI-TINT4-XPU       
+
+  2. 安装 torchao 0.17.0+xpu（仅 Intel XPU 用户）         
+     从你的 Intel 分发渠道安装                              
+     NVIDIA/CUDA 用户: pip install torchao>=0.17.0        
+     AMD/ROCm 用户: pip install torchao>=0.17.0 --index-url https://download.pytorch.org/whl/rocm6.4 
+         
+                  
+  3. 运行修复脚本                                          
+     双击 custom_nodes/ComfyUI-TINT4-XPU/fix_torchao_xpu.bat                      
+                                 
+
+  4. 重启 ComfyUI                                         
+
 ```
 
 ---
