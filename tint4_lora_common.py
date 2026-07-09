@@ -1,11 +1,17 @@
 """
-tint4_lora_common.py
-────────────────────
-Shared LoRA utilities — key normalization, format detection,
-full-reset helper, QuaRot rotation for LoRA, QKV split.
-No global registry.
+tint4_lora_common.py  v1.1
+─────────────────────────────
+Shared LoRA utilities — path normalization, format detection,
+QuaRot, raw LoRA parsing, index-based reset, bypass signal I/O.
+
+v1.1: +_read_clear_signal / _write_clear_signal (JS→Python bridge).
+v1.0.2: reset handles pending/applied/legacy bake states.
 """
+import logging
 import torch
+from .tint4_loader import TINT4Linear
+
+log = logging.getLogger("TINT4-LoRA-Common")
 
 
 def _get_accelerator_device() -> torch.device:
@@ -67,7 +73,7 @@ def _normalize_layer_path(path: str) -> str | None:
     path = path.replace(".self_attn.v", ".attn.wv")
     path = path.replace(".self_attn.o", ".attn.wo")
     path = path.replace(".attn.out", ".attn.wo")
-    return f"diffusion_model.{path}"
+    return path
 
 
 def _auto_detect_format(sd: dict) -> str:
@@ -105,63 +111,265 @@ def _convert_bfl_to_standard(sd: dict) -> dict:
     return out
 
 
-def _tint4_reset_all_loras(model) -> None:
-    from .tint4_loader import TINT4Linear
+def _rot_quarot_tensor(
+    tensor: torch.Tensor,
+    H: torch.Tensor | None,
+    group_size: int,
+    dev: torch.device,
+) -> torch.Tensor:
+    if H is None or group_size <= 0:
+        return tensor
+    if tensor.shape[1] % group_size != 0:
+        return tensor
+    Hd = H.to(tensor.device, dtype=torch.float16)
+    ng = tensor.shape[1] // group_size
+    return (tensor.reshape(tensor.shape[0], ng, group_size) @ Hd.T).reshape(
+        tensor.shape[0], tensor.shape[1])
 
+
+def _parse_raw_lora_sd(lora_sd: dict) -> dict[str, dict]:
+    lora_data: dict[str, dict] = {}
+    for key, tensor in lora_sd.items():
+        if "lokr_w1" in key:
+            idx = key.index("lokr_w1")
+            lp = _normalize_layer_path(key[:idx].rstrip("."))
+            if lp:
+                lora_data.setdefault(lp, {})["lokr_w1"] = tensor
+                lora_data[lp]["type"] = "lokr"
+            continue
+        if "lokr_w2" in key:
+            idx = key.index("lokr_w2")
+            lp = _normalize_layer_path(key[:idx].rstrip("."))
+            if lp:
+                lora_data.setdefault(lp, {})["lokr_w2"] = tensor
+                lora_data[lp]["type"] = "lokr"
+            continue
+        if "lora_up" in key or "lora_B" in key:
+            idx = (key.index("lora_up") if "lora_up" in key
+                   else key.index("lora_B"))
+            lp = _normalize_layer_path(key[:idx].rstrip("."))
+            if lp:
+                lora_data.setdefault(lp, {})["up"] = tensor
+                if "type" not in lora_data[lp]:
+                    lora_data[lp]["type"] = "standard"
+            continue
+        if "lora_down" in key or "lora_A" in key:
+            idx = (key.index("lora_down") if "lora_down" in key
+                   else key.index("lora_A"))
+            lp = _normalize_layer_path(key[:idx].rstrip("."))
+            if lp:
+                lora_data.setdefault(lp, {})["down"] = tensor
+                if "type" not in lora_data[lp]:
+                    lora_data[lp]["type"] = "standard"
+            continue
+        if key.endswith(".alpha"):
+            lp = _normalize_layer_path(key[:-6])
+            if lp:
+                t = tensor
+                lora_data.setdefault(lp, {})["alpha"] = (
+                    float(t.mean()) if t.numel() > 1 else t.item())
+            continue
+    return lora_data
+
+
+def _match_lora_to_index(
+    lora_data: dict[str, dict],
+    dm: torch.nn.Module,
+    quarot_enabled: bool,
+    group_size: int,
+    H: torch.Tensor | None,
+    dev: torch.device,
+    cpu: torch.device = torch.device("cpu"),
+) -> dict[str, list[dict]]:
+    index = getattr(dm, '_tint4_lora_index', None)
+    if index is None:
+        log.warning("[TINT4] No index table")
+        return {"quant": {}, "non_quant": {}}
+    quant_entries: dict[str, list[dict]] = {}
+    non_quant_entries: dict[str, list[dict]] = {}
+    for lora_norm, info in lora_data.items():
+        lora_type = info.get("type", "standard")
+        targets: list[str] = []
+        if lora_norm.endswith(".attn.qkv"):
+            base = lora_norm.rsplit(".attn.qkv", 1)[0]
+            targets = [f"{base}.attn.wq", f"{base}.attn.wk", f"{base}.attn.wv"]
+        else:
+            targets = [lora_norm]
+        qkv_slices = [None]
+        if len(targets) == 3:
+            qkv_mod = index.get(lora_norm)
+            if qkv_mod is not None:
+                if isinstance(qkv_mod, TINT4Linear):
+                    out_f = qkv_mod.out_features
+                elif hasattr(qkv_mod, 'weight') and qkv_mod.weight is not None:
+                    out_f = qkv_mod.weight.shape[0]
+                else:
+                    out_f = 0
+                if out_f > 0 and out_f % 3 == 0:
+                    hs = out_f // 3
+                    qkv_slices = [(0, hs), (hs, 2 * hs), (2 * hs, 3 * hs)]
+        for ti, target in enumerate(targets):
+            module = index.get(target)
+            if module is None:
+                continue
+            is_quant = isinstance(module, TINT4Linear)
+            if lora_type == "lokr":
+                w1 = info.get("lokr_w1")
+                w2 = info.get("lokr_w2")
+                if w1 is None or w2 is None:
+                    continue
+                w1_c = w1.to(cpu, torch.float16).clone()
+                w2_c = w2.to(cpu, torch.float16).clone()
+                w2_c = _rot_quarot_tensor(w2_c, H, group_size, dev)
+                alpha_val = info.get("alpha", w1_c.shape[0])
+                mult_base = alpha_val / max(w1_c.shape[0], 1)
+                entry = {
+                    "type": "lokr", "lokr_w1": w1_c, "lokr_w2": w2_c,
+                    "alpha": alpha_val, "mult_base": mult_base,
+                    "factor": w1_c.shape[0],
+                    "slice": qkv_slices[ti] if ti < len(qkv_slices) else None,
+                }
+            else:
+                down = info.get("down")
+                up = info.get("up")
+                if down is None or up is None:
+                    continue
+                A = down.to(cpu, torch.float16).clone()
+                B = up.to(cpu, torch.float16).clone()
+                A = _rot_quarot_tensor(A, H, group_size, dev)
+                alpha_val = info.get("alpha", up.shape[1])
+                mult_base = alpha_val / max(up.shape[1], 1)
+                entry = {
+                    "type": "standard", "down": A, "up": B,
+                    "alpha": alpha_val, "mult_base": mult_base,
+                    "slice": qkv_slices[ti] if ti < len(qkv_slices) else None,
+                }
+            if is_quant:
+                quant_entries.setdefault(target, []).append(entry)
+            else:
+                non_quant_entries.setdefault(target, []).append(entry)
+    return {"quant": quant_entries, "non_quant": non_quant_entries}
+
+
+def _build_lora_entries_full(
+    lora_sd: dict,
+    dm: torch.nn.Module,
+    quarot_enabled: bool,
+    group_size: int,
+    H: torch.Tensor | None,
+    dev: torch.device,
+) -> tuple[dict, str]:
+    fmt = _auto_detect_format(lora_sd)
+    if fmt == "bfl":
+        lora_sd = _convert_bfl_to_standard(lora_sd)
+    else:
+        fmt = "standard"
+    lora_data = _parse_raw_lora_sd(lora_sd)
+    matched = _match_lora_to_index(
+        lora_data, dm, quarot_enabled, group_size, H, dev)
+    return matched, fmt
+
+
+def _tint4_reset_all_loras(model) -> None:
     dm = model.model.diffusion_model
     while hasattr(dm, '_orig_mod'):
         dm = dm._orig_mod
 
-    for m in dm.modules():
-        if hasattr(m, '_tint4_lora_entries'):
-            object.__setattr__(m, '_tint4_lora_entries', None)
+    index = getattr(dm, '_tint4_lora_index', None)
+    if index is not None:
+        seen = set()
+        for module in index.values():
+            mid = id(module)
+            if mid in seen:
+                continue
+            seen.add(mid)
 
-        bs = getattr(m, '_tint4_bake_state', None)
-        if bs is not None and '_orig_weight' in bs:
-            if isinstance(m, TINT4Linear):
-                object.__setattr__(m, '_tint4_bake_state', None)
-            elif hasattr(m, 'weight') and m.weight is not None:
-                orig = bs['_orig_weight']
+            if hasattr(module, '_tint4_lora_entries'):
+                object.__setattr__(module, '_tint4_lora_entries', None)
+
+            bs = getattr(module, '_tint4_bake_state', None)
+            if bs is None:
+                continue
+
+            hh = bs.pop('_hook_handle', None)
+            if hh is not None:
                 try:
-                    m.weight.data.copy_(orig.to(
-                        device=m.weight.device, dtype=m.weight.dtype))
+                    hh.remove()
                 except Exception:
                     pass
-            object.__setattr__(m, '_tint4_bake_state', None)
-        elif bs is not None:
-            object.__setattr__(m, '_tint4_bake_state', None)
+            bs.pop('_pending', None)
+
+            applied = bs.pop('_applied', None)
+            if applied is not None and hasattr(module, 'weight') and module.weight is not None:
+                for delta_cpu, sl, se in applied:
+                    try:
+                        neg = (-delta_cpu).to(
+                            device=module.weight.device,
+                            dtype=module.weight.dtype)
+                        if sl is not None and se is not None:
+                            module.weight.data[sl:se].add_(neg)
+                        else:
+                            module.weight.data.add_(neg)
+                    except Exception:
+                        pass
+
+            for key in list(bs.keys()):
+                info = bs.pop(key, None)
+                if isinstance(info, dict) and 'delta' in info:
+                    delta = info['delta']
+                    sl = info.get('sl')
+                    se = info.get('se')
+                    if hasattr(module, 'weight') and module.weight is not None:
+                        try:
+                            neg = (-delta).to(
+                                device=module.weight.device,
+                                dtype=module.weight.dtype)
+                            if sl is not None and se is not None:
+                                module.weight.data[sl:se].add_(neg)
+                            else:
+                                module.weight.data.add_(neg)
+                        except Exception:
+                            pass
+
+            object.__setattr__(module, '_tint4_bake_state', None)
+    else:
+        log.warning("[TINT4] Reset called with no index table — skipped")
 
     object.__setattr__(model.model, '_tint4_loras', [])
     object.__setattr__(model.model, '_lora_needs_reset', False)
 
 
-def _rot_quarot(module, tensor: torch.Tensor, dev: torch.device) -> torch.Tensor:
-    if getattr(module, '_use_quarot', False):
-        H = getattr(module, '_hadamard_H', None)
-        gs = getattr(module, '_group_size', 128)
-        if H is not None and gs > 0 and tensor.shape[1] % gs == 0:
-            Hd = H.to(tensor.device, dtype=torch.float16)
-            ng = tensor.shape[1] // gs
-            return (tensor.reshape(tensor.shape[0], ng, gs) @ Hd.T).reshape(
-                tensor.shape[0], tensor.shape[1])
-    return tensor
+# ═══════════════════════════════════════════════════════════════════
+# v1.1: bypass signal file I/O (JS → Python bridge)
+# ═══════════════════════════════════════════════════════════════════
+
+import os as _os
+import json as _json
+
+_SIGNAL_DIR = _os.path.join(_os.path.dirname(__file__), "lora_cache")
+_SIGNAL_FILE = _os.path.join(_SIGNAL_DIR, "_signal.json")
 
 
-def _get_candidates(norm: str, lora_data: dict, module, is_quant: bool) -> list:
-    cands = []
-    if norm.endswith(".attn.qkv"):
-        out_f = (module.out_features if is_quant
-                 else (module.weight.shape[0] if hasattr(module, 'weight') else 0))
-        if out_f > 0:
-            hs = out_f // 3
-            if hs * 3 == out_f:
-                for suf, st, en in [(".attn.wq", 0, hs),
-                                    (".attn.wk", hs, 2 * hs),
-                                    (".attn.wv", 2 * hs, 3 * hs)]:
-                    info = lora_data.get(norm.replace(".attn.qkv", suf))
-                    if info:
-                        cands.append((info, st, en))
-    info = lora_data.get(norm)
-    if info:
-        cands.append((info, None, None))
-    return cands
+def _read_clear_signal() -> bool:
+    """Read bypass signal from JS → return True if clear is needed."""
+    try:
+        if _os.path.exists(_SIGNAL_FILE):
+            with open(_SIGNAL_FILE, "r", encoding="utf-8") as f:
+                data = _json.load(f)
+            _os.remove(_SIGNAL_FILE)
+            if data.get("action") == "clear":
+                log.info("[TINT4 Signal] Clear signal received — will force LoRA reset")
+                return True
+    except Exception:
+        pass
+    return False
+
+
+def _write_clear_signal(payload: dict) -> None:
+    """Write signal file (called by HTTP endpoint /custom/TINT4/signal)."""
+    try:
+        _os.makedirs(_SIGNAL_DIR, exist_ok=True)
+        with open(_SIGNAL_FILE, "w", encoding="utf-8") as f:
+            _json.dump(payload, f)
+    except Exception:
+        pass

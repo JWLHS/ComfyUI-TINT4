@@ -1,9 +1,40 @@
 """
-TINT4 v8.3.1 — torchao INT4 quantized model inference.
+TINT4 v1.1 — torchao INT4 quantized model inference.
+
+v1.1: +HTTP bypass signal endpoint (JS → Python bridge).
+v1.0: +lightweight LoRA cache, +index-based O(1) matching,
+      +IS_CHANGED fix, +JS bypass monitor, +QuaRot global marks.
 """
 import sys
+import os as _os
+import json as _json
 
 _MIN_TAO = (0, 17, 0)
+
+WEB_DIRECTORY = "./js"
+
+
+def _register_signal_endpoint():
+    """Register POST /custom/TINT4/signal for JS → Python bypass signal."""
+    try:
+        from server import PromptServer
+        from aiohttp import web
+
+        @PromptServer.instance.routes.post("/custom/TINT4/signal")
+        async def _tint4_signal_handler(request):
+            try:
+                payload = await request.json()
+                from .tint4_lora_common import _write_clear_signal
+                _write_clear_signal(payload)
+                return web.json_response({"status": "ok"})
+            except Exception:
+                return web.json_response({"status": "error"}, status=400)
+    except ImportError:
+        pass
+
+
+_register_signal_endpoint()
+
 
 def _ensure_torchao():
     try:
@@ -22,6 +53,7 @@ def _ensure_torchao():
     except (ValueError, IndexError):
         pass
     return True
+
 
 if _ensure_torchao():
     from .tint4_quantizer import NODE_CLASS_MAPPINGS as _QM, NODE_DISPLAY_NAME_MAPPINGS as _QD
