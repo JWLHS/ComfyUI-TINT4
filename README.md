@@ -248,6 +248,10 @@ python analyse_quant.py 模型路径.safetensors 模型类型
 
 ## 贡献
 
+---
+鸣谢 deeoseek v4 pro 
+鸣谢 torchao项目 https://github.com/pytorch/ao
+
 欢迎提交 Issue / PR。新模型支持、bug 修复、文档改进均可。
 
 ## 许可证
@@ -256,6 +260,4 @@ MIT
 ```
 
 ---
-鸣谢 deeoseek v4 pro 
-鸣谢 torchao项目 https://github.com/pytorch/ao
-**新增 `v1.0 LoRA 加载优化详解` 章节**，用 4 张精确对比表 + 1 张实测性能表，数据全部来自你今天的测试日志：YFG 0.63s / Onyx 4.78s / BreastSlider 0.05s。
+
