@@ -1,8 +1,4 @@
 ---
-
-## `README.md` — v1.0 发布版（含优化对比）
-
-
 # TINT4 v1.0 — torchao INT4 量化推理 for ComfyUI
 
 基于 [torchao](https://github.com/pytorch/ao) 的模型量化与推理插件。支持 Intel XPU / NVIDIA CUDA / AMD ROCm。
