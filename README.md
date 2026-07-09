@@ -26,6 +26,11 @@
 
 ```
 
+
+# 一些量化后的模型和示例工作流，持续添加...
+#  https://pan.baidu.com/s/5EEI7CoW5bdcpGxSEv0YA2A 
+
+
 ---
 
 ## 节点
