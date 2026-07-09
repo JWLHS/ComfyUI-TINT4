@@ -1,6 +1,8 @@
 """
-tint4_loader.py — TINT4 Model Loader v8.3.0
+tint4_loader.py — TINT4 Model Loader v8.3.1
 
+v8.3.1: _detach_cleanup now flushes cached _qt on all TINT4Linear
+        layers so device VRAM is freed on model unload/swap.
 v8.3.0: +_detect_boogu (OmniGen2 derivative, dim from x_embedder).
         Removed broken Z-Image patch_model hook.
 v8.2.1: add_patches conditional reset + 6-layer placeholders.
@@ -549,6 +551,17 @@ class TINT4ModelLoader:
 
         def _detach_cleanup(unpatch_all=True):
             _tint4_reset_all_loras(model)
+            # ── v8.3.1: flush cached Int4PlainInt32Tensor on all
+            #    TINT4Linear layers so device VRAM is freed when
+            #    ComfyUI unloads or swaps the model.  _qt is lazily
+            #    rebuilt on next forward — no perf cost for normal
+            #    repeated inference (model stays loaded).
+            _dm = model.model.diffusion_model
+            while hasattr(_dm, '_orig_mod'):
+                _dm = _dm._orig_mod
+            for _m in _dm.modules():
+                if isinstance(_m, TINT4Linear):
+                    _m.release_xpu()
             _empty_accelerator_cache()
             gc.collect()
             return _orig_detach(unpatch_all)
