@@ -15,9 +15,35 @@
      或 git clone 到 custom_nodes/ComfyUI-TINT4-XPU
 
   2. 安装 torchao 0.17.0+xpu（仅 Intel XPU 用户）
-     从你的 Intel 分发渠道安装
+     pip install torchao>=0.17.0
      NVIDIA/CUDA 用户: pip install torchao>=0.17.0
      AMD/ROCm 用户: pip install torchao>=0.17.0 --index-url https://download.pytorch.org/whl/rocm6.4
+###  INTEL用户 : pip install torchao --index-url https://download.pytorch.org/whl/xpu
+     Intel XPU users: after installing torchao, run fix_torchao_xpu.bat (included in the plugin) to patch missing submodules in the XPU fork.
+---
+
+## torchao XPU fork 缺少模块的解决方案
+
+Intel 的 `torchao 0.17.0+xpu` 缺少标准 torchao 的部分子模块，导致 diffusers / transformers 在启动时崩溃（报错 `ModuleNotFoundError`）。
+
+**自动修复**（推荐）：双击插件目录下的 `fix_torchao_xpu.bat`，或手动运行：
+
+```bash
+python fix_torchao_xpu.py
+```
+
+脚本会自动检测 torchao 安装路径并补全所有缺失文件。仅对 +xpu 版本生效，标准 torchao 自动跳过。
+
+**手动修复**：如果脚本无法运行,在 ComfyUI 的 `site-packages/torchao/` 下创建以下空文件：
+
+```
+dtypes/floatx/__init__.py
+dtypes/floatx/float8_layout.py      # 内容: Float8AQTTensorImpl = None
+dtypes/uintx/__init__.py
+dtypes/uintx/uint4_layout.py        # 内容: UInt4Tensor = None
+dtypes/uintx/plain_layout.py
+quantization/linear_quant.py
+```
 
   3. 运行修复脚本
      双击 custom_nodes/ComfyUI-TINT4-XPU/fix_torchao_xpu.bat
@@ -90,30 +116,7 @@ v1.0 对 LoRA 加载链路进行了端到端重构。以下是每一项优化的
 | 首次加载 Onyx_V1（264层） | ~185s | **4.78s** | **38×** |
 | 小 LoRA（BreastSlider, 104层） | ~0.3s | **0.05s** | 6× |
 
----
 
-## torchao XPU fork 缺少模块的解决方案
-
-Intel 的 `torchao 0.17.0+xpu` 缺少标准 torchao 的部分子模块，导致 diffusers / transformers 在启动时崩溃（报错 `ModuleNotFoundError`）。
-
-**自动修复**（推荐）：双击插件目录下的 `fix_torchao_xpu.bat`，或手动运行：
-
-```bash
-python fix_torchao_xpu.py
-```
-
-脚本会自动检测 torchao 安装路径并补全所有缺失文件。仅对 +xpu 版本生效，标准 torchao 自动跳过。
-
-**手动修复**：如果脚本无法运行,在 ComfyUI 的 `site-packages/torchao/` 下创建以下空文件：
-
-```
-dtypes/floatx/__init__.py
-dtypes/floatx/float8_layout.py      # 内容: Float8AQTTensorImpl = None
-dtypes/uintx/__init__.py
-dtypes/uintx/uint4_layout.py        # 内容: UInt4Tensor = None
-dtypes/uintx/plain_layout.py
-quantization/linear_quant.py
-```
 
 ---
 
