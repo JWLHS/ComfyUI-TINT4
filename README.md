@@ -6,6 +6,8 @@
 > **v1.0 重大更新**：LoRA 系统全面重构——索引表 O(1) 匹配、GPU pre-hook 延迟注入、轻量 JSON 缓存、IS_CHANGED 精确跳过。首次加载 < 5s，参数不变 0s，改强度 < 1s。
 
 ---
+# 一些量化后的模型和示例工作流，持续添加...
+### https://pan.quark.cn/s/a324b2c9881b
 
 ## 安装
 
@@ -49,10 +51,6 @@ quantization/linear_quant.py
      双击 custom_nodes/ComfyUI-TINT4-XPU/fix_torchao_xpu.bat
 
   4. 重启 ComfyUI
-```
-
-# 一些量化后的模型和示例工作流，持续添加...
-### https://pan.quark.cn/s/a324b2c9881b
 
 ---
 
