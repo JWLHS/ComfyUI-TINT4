@@ -1,6 +1,8 @@
 
 # TINT4 v1.1 — torchao INT4 Quantized Inference for ComfyUI
 
+> [中文版](README_CN.md)
+
 Built on [torchao](https://github.com/pytorch/ao).  Supports Intel XPU / NVIDIA CUDA / AMD ROCm.
 
 > **v1.1**: Reliable IS_CHANGED, _lora_needs_reset flag, isolated AIMDO bridge, single‑LoRA chaining, Stack slots 5→8, 🐍 plugin integration.
