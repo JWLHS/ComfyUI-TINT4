@@ -150,7 +150,7 @@ class TINT4LoRAStack:
             },
             "optional": {},
         }
-        for i in range(1, 6):
+        for i in range(1, 9):
             inp["optional"][f"lora_name_{i}"] = (
                 ["None"] + folder_paths.get_filename_list("loras"),
             )
@@ -164,26 +164,24 @@ class TINT4LoRAStack:
 
     @classmethod
     def IS_CHANGED(cls, model, **kwargs):
-        mid = id(model.model) if hasattr(model, 'model') else id(model)
-        parts = [mid]
-        for i in range(1, 6):
+        import random
+        parts = [random.random()]
+        for i in range(1, 9):
             n = kwargs.get(f"lora_name_{i}")
             s = kwargs.get(f"strength_{i}", 1.0)
             parts.append((n, round(s, 4)))
         current = tuple(parts)
         active = [
             (kwargs.get(f"lora_name_{i}"), kwargs.get(f"strength_{i}", 1.0))
-            for i in range(1, 6)
+            for i in range(1, 9)
             if kwargs.get(f"lora_name_{i}") not in (None, "None", "")
             and abs(kwargs.get(f"strength_{i}", 1.0)) >= 1e-5
         ]
         names = ", ".join(f"{n}({s:.1f})" for n, s in active) if active else "none"
         if cls._prev_changed is None:
             log.info(f"[TINT4 Stack] LoRAs: {names} | first load")
-        elif cls._prev_changed == current:
-            log.info(f"[TINT4 Stack] LoRAs: {names} | unchanged → skip")
         else:
-            log.info(f"[TINT4 Stack] LoRAs: {names} | changed → reload")
+            log.info(f"[TINT4 Stack] LoRAs: {names} | reload")
         cls._prev_changed = current
         return current
 
@@ -193,7 +191,7 @@ class TINT4LoRAStack:
 
     def apply(self, model, **kwargs):
         to_apply = []
-        for i in range(1, 6):
+        for i in range(1, 9):
             n = kwargs.get(f"lora_name_{i}")
             s = kwargs.get(f"strength_{i}", 1.0)
             if n is None or n == "None" or n == "":

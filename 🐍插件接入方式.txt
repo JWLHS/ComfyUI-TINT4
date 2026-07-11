@@ -1,0 +1,14 @@
+单lora节点接入，只需要再右上角设置里找到🐍插件设置，在🐍 模型信息 - LoRA节点/小部件设置部位，在输入框其余节点信息后添加  TINT4LoRALoader.lora_name*,
+如果想添加堆信息查看则需要修改🐍插件脚本
+找到custom_nodes\ComfyUI-Custom-Scripts\web\js\ 中的modelInfo.js  
+用编辑文本或者记事本打开后 
+找到
+        if (!value || value === "None") {
+            return; 
+        }
+将 return改成continue
+随后在comfyui画布右上角设置里找到🐍插件设置，Lora节点小部件后面输入框，在原本正则式槽位最后添加
+TINT4LoRAStack.lora_name_1,TINT4LoRAStack.lora_name_2,TINT4LoRAStack.lora_name_3,TINT4LoRAStack.lora_name_4,TINT4LoRAStack.lora_name_5,TINT4LoRAStack.lora_name_6,TINT4LoRAStack.lora_name_7,TINT4LoRAStack.lora_name_8*,
+即可使用🐍插件的lora信息查看功能
+🐍为ComfyUI-Custom-Scripts
+成功后右键tint4lora节点会在快捷栏中找到查看lora信息字样
