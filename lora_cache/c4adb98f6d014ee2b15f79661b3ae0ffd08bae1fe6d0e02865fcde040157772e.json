@@ -1,0 +1,2311 @@
+{
+  "version": 2,
+  "lora_hash": "c4adb98f6d014ee2b15f79661b3ae0ffd08bae1fe6d0e02865fcde040157772e",
+  "format": "standard",
+  "entries": {
+    "blocks.0.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.0.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.0.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.0.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.0.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.0.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.0.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.0.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.0.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.0.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.0.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.0.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.0.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.0.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.0.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.0.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.0.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.0.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.0.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.0.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.0.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.0.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.0.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.0.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.1.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.1.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.1.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.1.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.1.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.1.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.1.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.1.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.1.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.1.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.1.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.1.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.1.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.1.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.1.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.1.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.1.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.1.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.1.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.1.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.1.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.1.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.1.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.1.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.10.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.10.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.10.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.10.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.10.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.10.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.10.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.10.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.10.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.10.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.10.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.10.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.10.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.10.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.10.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.10.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.10.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.10.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.10.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.10.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.10.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.10.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.10.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.10.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.11.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.11.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.11.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.11.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.11.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.11.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.11.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.11.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.11.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.11.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.11.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.11.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.11.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.11.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.11.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.11.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.11.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.11.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.11.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.11.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.11.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.11.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.11.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.11.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.12.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.12.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.12.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.12.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.12.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.12.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.12.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.12.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.12.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.12.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.12.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.12.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.12.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.12.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.12.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.12.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.12.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.12.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.12.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.12.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.12.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.12.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.12.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.12.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.13.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.13.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.13.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.13.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.13.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.13.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.13.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.13.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.13.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.13.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.13.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.13.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.13.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.13.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.13.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.13.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.13.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.13.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.13.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.13.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.13.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.13.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.13.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.13.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.14.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.14.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.14.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.14.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.14.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.14.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.14.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.14.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.14.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.14.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.14.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.14.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.14.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.14.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.14.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.14.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.14.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.14.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.14.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.14.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.14.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.14.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.14.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.14.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.15.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.15.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.15.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.15.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.15.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.15.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.15.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.15.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.15.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.15.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.15.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.15.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.15.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.15.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.15.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.15.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.15.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.15.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.15.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.15.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.15.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.15.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.15.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.15.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.16.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.16.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.16.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.16.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.16.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.16.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.16.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.16.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.16.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.16.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.16.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.16.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.16.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.16.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.16.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.16.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.16.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.16.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.16.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.16.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.16.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.16.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.16.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.16.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.17.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.17.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.17.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.17.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.17.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.17.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.17.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.17.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.17.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.17.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.17.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.17.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.17.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.17.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.17.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.17.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.17.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.17.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.17.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.17.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.17.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.17.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.17.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.17.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.18.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.18.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.18.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.18.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.18.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.18.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.18.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.18.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.18.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.18.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.18.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.18.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.18.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.18.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.18.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.18.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.18.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.18.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.18.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.18.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.18.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.18.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.18.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.18.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.19.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.19.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.19.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.19.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.19.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.19.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.19.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.19.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.19.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.19.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.19.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.19.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.19.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.19.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.19.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.19.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.19.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.19.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.19.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.19.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.19.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.19.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.19.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.19.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.2.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.2.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.2.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.2.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.2.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.2.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.2.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.2.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.2.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.2.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.2.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.2.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.2.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.2.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.2.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.2.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.2.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.2.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.2.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.2.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.2.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.2.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.2.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.2.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.20.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.20.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.20.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.20.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.20.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.20.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.20.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.20.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.20.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.20.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.20.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.20.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.20.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.20.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.20.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.20.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.20.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.20.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.20.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.20.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.20.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.20.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.20.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.20.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.21.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.21.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.21.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.21.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.21.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.21.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.21.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.21.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.21.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.21.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.21.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.21.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.21.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.21.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.21.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.21.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.21.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.21.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.21.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.21.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.21.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.21.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.21.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.21.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.22.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.22.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.22.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.22.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.22.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.22.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.22.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.22.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.22.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.22.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.22.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.22.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.22.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.22.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.22.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.22.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.22.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.22.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.22.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.22.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.22.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.22.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.22.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.22.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.23.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.23.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.23.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.23.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.23.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.23.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.23.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.23.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.23.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.23.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.23.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.23.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.23.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.23.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.23.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.23.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.23.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.23.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.23.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.23.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.23.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.23.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.23.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.23.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.24.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.24.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.24.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.24.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.24.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.24.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.24.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.24.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.24.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.24.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.24.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.24.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.24.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.24.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.24.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.24.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.24.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.24.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.24.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.24.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.24.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.24.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.24.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.24.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.25.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.25.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.25.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.25.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.25.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.25.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.25.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.25.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.25.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.25.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.25.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.25.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.25.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.25.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.25.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.25.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.25.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.25.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.25.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.25.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.25.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.25.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.25.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.25.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.26.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.26.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.26.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.26.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.26.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.26.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.26.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.26.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.26.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.26.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.26.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.26.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.26.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.26.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.26.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.26.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.26.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.26.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.26.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.26.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.26.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.26.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.26.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.26.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.27.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.27.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.27.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.27.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.27.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.27.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.27.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.27.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.27.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.27.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.27.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.27.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.27.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.27.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.27.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.27.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.27.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.27.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.27.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.27.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.27.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.27.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.27.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.27.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.3.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.3.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.3.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.3.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.3.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.3.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.3.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.3.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.3.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.3.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.3.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.3.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.3.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.3.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.3.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.3.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.3.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.3.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.3.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.3.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.3.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.3.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.3.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.3.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.4.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.4.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.4.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.4.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.4.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.4.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.4.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.4.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.4.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.4.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.4.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.4.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.4.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.4.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.4.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.4.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.4.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.4.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.4.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.4.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.4.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.4.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.4.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.4.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.5.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.5.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.5.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.5.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.5.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.5.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.5.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.5.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.5.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.5.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.5.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.5.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.5.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.5.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.5.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.5.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.5.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.5.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.5.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.5.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.5.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.5.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.5.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.5.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.6.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.6.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.6.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.6.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.6.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.6.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.6.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.6.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.6.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.6.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.6.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.6.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.6.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.6.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.6.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.6.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.6.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.6.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.6.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.6.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.6.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.6.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.6.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.6.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.7.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.7.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.7.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.7.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.7.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.7.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.7.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.7.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.7.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.7.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.7.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.7.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.7.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.7.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.7.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.7.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.7.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.7.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.7.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.7.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.7.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.7.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.7.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.7.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.8.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.8.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.8.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.8.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.8.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.8.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.8.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.8.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.8.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.8.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.8.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.8.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.8.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.8.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.8.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.8.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.8.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.8.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.8.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.8.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.8.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.8.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.8.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.8.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.9.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.9.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.9.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.9.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.9.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.9.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.9.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.9.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.9.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.9.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.9.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.9.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.9.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.9.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.9.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.9.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.9.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.9.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.9.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.9.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.9.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "blocks.9.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.blocks.9.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.blocks.9.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.layerwise_blocks.0.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.layerwise_blocks.0.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.layerwise_blocks.0.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.layerwise_blocks.0.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.layerwise_blocks.0.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.layerwise_blocks.0.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.layerwise_blocks.0.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.layerwise_blocks.0.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.layerwise_blocks.0.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.layerwise_blocks.0.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.layerwise_blocks.0.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.layerwise_blocks.0.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.layerwise_blocks.0.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.layerwise_blocks.0.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.layerwise_blocks.0.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.layerwise_blocks.0.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.layerwise_blocks.0.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.layerwise_blocks.0.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.layerwise_blocks.0.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.layerwise_blocks.0.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.layerwise_blocks.0.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.layerwise_blocks.0.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.layerwise_blocks.0.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.layerwise_blocks.0.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.layerwise_blocks.1.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.layerwise_blocks.1.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.layerwise_blocks.1.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.layerwise_blocks.1.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.layerwise_blocks.1.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.layerwise_blocks.1.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.layerwise_blocks.1.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.layerwise_blocks.1.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.layerwise_blocks.1.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.layerwise_blocks.1.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.layerwise_blocks.1.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.layerwise_blocks.1.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.layerwise_blocks.1.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.layerwise_blocks.1.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.layerwise_blocks.1.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.layerwise_blocks.1.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.layerwise_blocks.1.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.layerwise_blocks.1.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.layerwise_blocks.1.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.layerwise_blocks.1.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.layerwise_blocks.1.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.layerwise_blocks.1.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.layerwise_blocks.1.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.layerwise_blocks.1.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.refiner_blocks.0.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.refiner_blocks.0.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.refiner_blocks.0.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.refiner_blocks.0.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.refiner_blocks.0.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.refiner_blocks.0.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.refiner_blocks.0.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.refiner_blocks.0.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.refiner_blocks.0.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.refiner_blocks.0.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.refiner_blocks.0.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.refiner_blocks.0.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.refiner_blocks.0.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.refiner_blocks.0.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.refiner_blocks.0.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.refiner_blocks.0.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.refiner_blocks.0.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.refiner_blocks.0.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.refiner_blocks.0.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.refiner_blocks.0.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.refiner_blocks.0.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.refiner_blocks.0.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.refiner_blocks.0.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.refiner_blocks.0.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.refiner_blocks.1.attn.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.refiner_blocks.1.attn.gate.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.refiner_blocks.1.attn.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.refiner_blocks.1.attn.wk": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.refiner_blocks.1.attn.wk.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.refiner_blocks.1.attn.wk.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.refiner_blocks.1.attn.wo": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.refiner_blocks.1.attn.wo.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.refiner_blocks.1.attn.wo.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.refiner_blocks.1.attn.wq": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.refiner_blocks.1.attn.wq.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.refiner_blocks.1.attn.wq.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.refiner_blocks.1.attn.wv": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.refiner_blocks.1.attn.wv.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.refiner_blocks.1.attn.wv.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.refiner_blocks.1.mlp.down": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.refiner_blocks.1.mlp.down.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.refiner_blocks.1.mlp.down.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.refiner_blocks.1.mlp.gate": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.refiner_blocks.1.mlp.gate.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.refiner_blocks.1.mlp.gate.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    },
+    "txtfusion.refiner_blocks.1.mlp.up": {
+      "type": "standard",
+      "alpha": null,
+      "is_qkv": false,
+      "raw_down": "diffusion_model.txtfusion.refiner_blocks.1.mlp.up.lora_A.weight",
+      "raw_up": "diffusion_model.txtfusion.refiner_blocks.1.mlp.up.lora_B.weight",
+      "has_alpha_key": null,
+      "alpha_from_shape": true
+    }
+  }
+}

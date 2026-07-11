@@ -179,7 +179,9 @@ class TINT4LoRALoader:
 	FUNCTION = "load_lora"
 
 	def load_lora(self, model, lora_name, strength):
-		_tint4_reset_all_loras(model)
+		if getattr(model.model, '_lora_needs_reset', False):
+			_tint4_reset_all_loras(model)
+			object.__setattr__(model.model, '_lora_needs_reset', False)
 		if abs(strength) < 1e-5:
 			return (model,)
 
@@ -324,6 +326,17 @@ class TINT4LoRALoader:
 			le.pop(lora_name, None)
 		bs = getattr(module, '_tint4_bake_state', None)
 		if bs is not None:
+			applied = bs.pop('_applied', None)
+			if applied is not None and hasattr(module, 'weight') and module.weight is not None:
+				for delta_cpu, sl, se in applied:
+					try:
+						neg = (-delta_cpu).to(device=module.weight.device, dtype=module.weight.dtype)
+						if sl is not None and se is not None:
+							module.weight.data[sl:se].add_(neg)
+						else:
+							module.weight.data.add_(neg)
+					except Exception:
+						pass
 			bs.pop(lora_name, None)
 			bs.pop('_pending', None)
 			hh = bs.pop('_hook_handle', None)

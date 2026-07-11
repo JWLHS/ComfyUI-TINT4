@@ -93,6 +93,10 @@ _EXCLUSIONS = {
     "ideogram4": [
         "embed_image_indicator", "t_embedding", "proj",
     ],
+    "anima": [
+        "adaln",
+        "x_embedder",
+    ],
     "auto": [],
 }
 MODEL_TYPES = list(_EXCLUSIONS.keys())

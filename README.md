@@ -1,334 +1,336 @@
 
-# TINT4 v1.1 — torchao INT4 Quantized Inference for ComfyUI
+# TINT4 v1.1 — torchao INT4 量化推理 for ComfyUI
 
-> [中文版](README_CN.md)
+# > [English](README_EN.md)
 
-Built on [torchao](https://github.com/pytorch/ao).  Supports Intel XPU / NVIDIA CUDA / AMD ROCm.
+基于 [torchao](https://github.com/pytorch/ao) 的模型量化与推理插件。支持 Intel XPU / NVIDIA CUDA / AMD ROCm。
 
-> **v1.1**: Reliable IS_CHANGED, _lora_needs_reset flag, isolated AIMDO bridge, single‑LoRA chaining, Stack slots 5→8, 🐍 plugin integration.
+> **v1.1 更新**：IS_CHANGED 可靠执行、_lora_needs_reset 标志位、AIMDO 独立适配模块、单 LoRA 串联支持、Stack 槽位扩容至 8 个、🐍 插件接入方案。
 
 ---
 
-# Pre‑quantized models & example workflows:
+# 一些量化后的模型和示例工作流，持续添加...
 ### https://pan.quark.cn/s/a324b2c9881b
 
 ---
 
-## Installation
+## 安装
 
 ```
-  1. Install the plugin
-     ComfyUI Manager → search "TINT4"
-     or git clone into custom_nodes/ComfyUI-TINT4
+  1. 安装插件
+     ComfyUI Manager 搜 "TINT4" 安装
+     或 git clone 到 custom_nodes/ComfyUI-TINT4
 
-  2. Install torchao
+  2. 安装 torchao
      pip install torchao>=0.17.0
-     Intel XPU:   pip install torchao --index-url https://download.pytorch.org/whl/xpu
-     NVIDIA/CUDA: pip install torchao>=0.17.0
-     AMD/ROCm:    pip install torchao>=0.17.0 --index-url https://download.pytorch.org/whl/rocm6.4
+     Intel XPU 用户: pip install torchao --index-url https://download.pytorch.org/whl/xpu
+     NVIDIA/CUDA 用户: pip install torchao>=0.17.0
+     AMD/ROCm 用户: pip install torchao>=0.17.0 --index-url https://download.pytorch.org/whl/rocm6.4
 
-  3. Intel XPU users: after installing torchao, double‑click fix_torchao_xpu.bat
-     (included in the plugin directory) to patch missing sub‑modules
+  3. Intel XPU 用户安装 torchao 后，双击插件目录下的 fix_torchao_xpu.bat 补全缺失子模块
 
-  4. Restart ComfyUI
+  4. 重启 ComfyUI
 ```
 
 ---
 
-## torchao XPU Fork — Missing Sub‑modules Fix
+## torchao XPU fork 缺少模块的解决方案
 
-Intel's `torchao 0.17.0+xpu` omits several standard torchao sub‑modules, causing diffusers / transformers to crash on startup (`ModuleNotFoundError`).
+Intel 的 `torchao 0.17.0+xpu` 缺少标准 torchao 的部分子模块，导致 diffusers / transformers 在启动时崩溃（报错 `ModuleNotFoundError`）。
 
-**Auto‑fix (recommended)**: double‑click `fix_torchao_xpu.bat` in the plugin directory, or run:
+**自动修复**（推荐）：双击插件目录下的 `fix_torchao_xpu.bat`，或手动运行：
 
 ```bash
 python fix_torchao_xpu.py
 ```
 
-The script auto‑detects the torchao install path and creates all missing files.  Only affects `+xpu` builds; standard torchao is skipped.
+脚本会自动检测 torchao 安装路径并补全所有缺失文件。仅对 +xpu 版本生效，标准 torchao 自动跳过。
 
-**Manual fix**: if the script cannot run, create the following empty files under ComfyUI's `site-packages/torchao/`:
+**手动修复**：如果脚本无法运行，在 ComfyUI 的 `site-packages/torchao/` 下创建以下空文件：
 
 ```
 dtypes/floatx/__init__.py
-dtypes/floatx/float8_layout.py      # content: Float8AQTTensorImpl = None
+dtypes/floatx/float8_layout.py      # 内容: Float8AQTTensorImpl = None
 dtypes/uintx/__init__.py
-dtypes/uintx/uint4_layout.py        # content: UInt4Tensor = None
+dtypes/uintx/uint4_layout.py        # 内容: UInt4Tensor = None
 dtypes/uintx/plain_layout.py
 quantization/linear_quant.py
 ```
 
 ---
 
-## Nodes
+## 节点
 
-| Node | Purpose |
+| 节点 | 功能 |
 |---|---|
-| **TINT4 Model Quantizer** | Quantize fp16/bf16/fp8/int8 → INT4 safetensors |
-| **TINT4 Model Loader** | Load quantized model |
-| **TINT4 LoRA Loader** | Single LoRA (standard + LoKr + QKV fused/independent) |
-| **TINT4 LoRA Stack** | Multi‑LoRA (up to 8) |
+| **TINT4 Model Quantizer** | 将 fp16/bf16/fp8/int8 模型量化为 INT4 并保存为 safetensors |
+| **TINT4 Model Loader** | 加载量化模型 |
+| **TINT4 LoRA Loader** | 单 LoRA 热加载（标准 + LoKr + QKV fused/independent 全兼容） |
+| **TINT4 LoRA Stack** | 多 LoRA 栈（最多 8 个） |
 
 ---
 
-## v1.1 Highlights
+## v1.1 新特性
 
-### 1. Reliable IS_CHANGED
+### 1. IS_CHANGED 可靠执行
 
-v1.0's IS_CHANGED used `id(model.model)` to detect changes.  When ComfyUI cached the model object, the Python id stayed the same → the LoRA node was skipped → but `model.detach()` had already cleared LoRA state at the end of the previous run → **LoRA silently lost on the second Queue**.
+v1.0 的 IS_CHANGED 使用 `id(model.model)` 判断模型是否变更。当 ComfyUI 缓存模型对象时，Python id 不变 → ComfyUI 判定节点"未变更"→ 跳过执行 → 但上轮结束时 `model.detach()` 已清空 LoRA 状态 → **二次 Queue 后 LoRA 失效**。
 
-v1.1 uses `random()` so the LoRA node **always executes**.  Cache‑hit reload only rebuilds CPU entries (< 1 s).  **Reliability over "0‑s skip" marketing.**
+v1.1 改为 `random()` 强制每次 Queue 都执行 LoRA 节点。缓存命中时仅重建 CPU entries，耗时 < 1s。**可靠性优先于"0s 跳过"的营销卖点。**
 
-### 2. `_lora_needs_reset` Flag (inspired by [WINT4](https://github.com/JWLHS/ComfyUI-WINT4-XPU-beta))
+### 2. _lora_needs_reset 标志位（借鉴 WINT4 架构） (https://github.com/JWLHS/ComfyUI-WINT4-XPU-beta)
 
-`model.detach()` sets the flag to `True` after clearing LoRA state.  LoRA Loader / Stack check it on entry:
+`model.detach()` 清空 LoRA 后将标志位置为 `True`。LoRA Loader / Stack 入口检查该标志：
 
-- **True** → lingering or fresh‑loaded model → full clear → inject → set `False`
-- **False** → previous node already handled cleanup → skip full clear → inject only
+- **True** → 存在残留或模型刚重载 → 清全场 → 注入 → 置 `False`
+- **False** → 上一节点已清理完毕 → 不清全场 → 仅注入当前 LoRA
 
-**This is the foundation for single‑LoRA chaining.**  When two Loaders are chained, the first clears globally and sets False; the second sees False and preserves the first's injection.
+**这是单 LoRA 节点串联的基础。** 两个单 LoRA Loader 串联时，第一个清全场后置 False，第二个见到 False 即保留前者的注入结果。
 
-### 3. `_pop_module_lora` Enhancement
+### 3. _pop_module_lora 增强
 
-v1.0's `_pop_module_lora` only removed entries from the dict but **never rolled back deltas already baked into weight**.  Changing strength (e.g. 1.0 → 0.5) caused old and new deltas to accumulate.
+v1.0 的 `_pop_module_lora` 仅清除 entries 字典中的条目，**未回退已 baked 到 weight 上的 delta**。修改 LoRA strength 时（如 1.0 → 0.5），旧 delta 未被减去即注入新值 → 累加错误。
 
-v1.1 adds baked‑delta rollback: subtract old deltas from weight → clear entries → inject new values.  **Changing strength no longer accumulates.**
+v1.1 补上了 baked delta 回退逻辑：先从 weight 减去旧 `_applied` 列表中的 delta，再清除条目，最后注入新值。**改 strength 不再叠加。**
 
-### 4. LoRA Stack Slot Expansion
+### 4. LoRA Stack 槽位扩容
 
-Expanded from 5 slots to **8**.  `INPUT_TYPES`, `IS_CHANGED`, and `apply` all use `range(1, N)` updated accordingly.
+从 5 个槽位扩展为 **8 个**。涉及 `INPUT_TYPES`、`IS_CHANGED`、`apply` 三处 `range(1, N)` 的同步修改。
 
-### 5. Isolated AIMDO Bridge
+### 5. AIMDO 独立适配模块
 
-All AIMDO logic is extracted into `tint4_aimdo.py`, decoupled from `tint4_loader.py`.  Future AIMDO upstream changes only require editing this file.
+AIMDO 相关逻辑全部提取至 `tint4_aimdo.py`，与 `tint4_loader.py` 解耦。AIMDO 上游更新时只需修改此文件，不影响核心加载逻辑。
 
-| Scenario | Placeholder strategy | RAM |
-|----------|---------------------|-----|
-| AIMDO ON | Full zero‑placeholders (224 layers) → VBAR skips fp16 allocation | ~30 GB |
-| AIMDO OFF | 6‑placeholder → lightweight ModelPatcher, no fp16 CPU copies | ~15–20 GB |
-| AIMDO ON + LoRA | No forward hooks → no repeated `_qt` rebuild | Normal speed |
+| 场景 | 占位符策略 | 内存 |
+|------|-----------|------|
+| AIMDO ON | 全量零占位符（224 层）→ VBAR 跳过 fp16 分配 | ~30 GB |
+| AIMDO OFF | 6 层占位符 → ModelPatcher 轻量，不保留 fp16 副本 | ~15–20 GB |
+| AIMDO ON + LoRA | 不注册 forward hooks → 不反复重建 `_qt` | 速度正常 |
 
-> **Note**: `TINT4Linear` quantization data (`_qdata` / `_scale` / `_zp`) are plain Python attributes, invisible to `named_parameters()`.  VBAR cannot manage them.  `pin_weight` / `unpin_weight` are no‑ops on TINT4Linear (no `_v` attribute); v1.1 removes these ineffective calls.
+> **注意**：`TINT4Linear` 的量化权重（`_qdata`/`_scale`/`_zp`）是普通 Python 属性，不在 `named_parameters()` 中，VBAR 无法管理它们。`pin_weight`/`unpin_weight` 对 TINT4 是空操作（无 `_v` 属性），v1.1 已移除这些无效调用。
 
 ---
 
-## 🐍 Plugin Integration (ComfyUI-Custom-Scripts)
+## 🐍 插件接入方案（ComfyUI-Custom-Scripts）
 
-The 🐍 plugin provides LoRA info popups (CivitAI link, preview image, tags, training params, etc.).
+🐍 插件可为 LoRA 节点提供模型信息弹窗（CivitAI 链接、预览图、标签、训练参数等）。
 
-### Single LoRA Loader
+### 单 LoRA Loader
 
-In ComfyUI settings → 🐍 Model Info → LoRA Nodes/Widgets, append:
+在 ComfyUI 右上角设置 → 🐍 Model Info → LoRA Nodes/Widgets 配置中，末尾添加：
 
 ```
 ,TINT4LoRALoader.lora_name
 ```
 
-### LoRA Stack (two steps)
+### LoRA Stack（需两步）
 
-**Step 1**: Edit `ComfyUI-Custom-Scripts/web/js/modelInfo.js`.
-Find:
+**第一步**：修改 `ComfyUI-Custom-Scripts/web/js/modelInfo.js` 
+找到：
 
 ```javascript
 if (!value || value === "None") {
-    return;            // ← change to continue
+    return;            // ← 改为 continue
 }
 ```
 
-Change `return` to `continue`.  The original logic iterates the Stack's 8 slots but `return`s on the first `"None"` (empty slot), never checking subsequent filled slots.
+将 `return` 改为 `continue`。原逻辑在遍历 Stack 的 8 个槽位时，遇到第一个 `"None"`（空槽）即 `return` 退出整个函数，导致后续有 LoRA 的槽位永不被检查。
 
-**Step 2**: Add per‑slot entries in 🐍 settings:
+**第二步**：在 🐍 设置中添加逐槽位条目：
 
 ```
 ,TINT4LoRAStack.lora_name_1,TINT4LoRAStack.lora_name_2,TINT4LoRAStack.lora_name_3,TINT4LoRAStack.lora_name_4,TINT4LoRAStack.lora_name_5,TINT4LoRAStack.lora_name_6,TINT4LoRAStack.lora_name_7,TINT4LoRAStack.lora_name_8
 ```
 
-> If you change the slot count (e.g. to 10), update this list accordingly.
+> 若槽位数量有调整（如自行改为 10），需同步更新此配置。
 
 ---
 
-## v1.0 LoRA Optimizations (preserved)
+## v1.0 LoRA 加载优化详解（保留）
 
-v1.0's end‑to‑end LoRA pipeline overhaul is fully retained in v1.1.
+v1.0 对 LoRA 加载链路进行了端到端重构。以下优化在 v1.1 中全部保留。
 
-### Index‑based O(1) Matching
-
-| | v0.x | v1.0 / v1.1 |
-|---|------|-------------|
-| Matching | `named_modules()` traverse ~1000 modules | `_tint4_lora_index` dict built at load time |
-| Lookup | O(n), ~2 s | O(1), < 0.1 ms |
-| QKV | Partial format support | Full fused QKV + independent wq/wk/wv, auto‑slice |
-
-### Bake‑in: CPU → GPU pre‑hook
+### 索引表 O(1) 模块匹配
 
 | | v0.x | v1.0 / v1.1 |
 |---|------|-------------|
-| Compute | CPU offline `B@A` | GPU pre‑hook, lazy |
-| Bottleneck layer (16384×16384) | 1.5–2.0 s | < 1 ms |
-| Onyx_V1 full load | ~185 s | **~4.78 s** |
+| 匹配方式 | `named_modules()` 遍历全部 ~1000 个模块 | 模型加载时建 `_tint4_lora_index` 路径→模块字典 |
+| 单次查找 | O(n)，~2s | O(1)，< 0.1ms |
+| QKV 处理 | 仅部分格式 | 全面兼容 fused QKV + 独立 wq/wk/wv，自动切片 |
 
-### Lightweight JSON Disk Cache
+### Bake-in 计算：CPU → GPU pre-hook
 
 | | v0.x | v1.0 / v1.1 |
 |---|------|-------------|
-| Cache | None, full parse every run | JSON ~30 KB, SHA256‑indexed |
-| First load | 5–30 s | Same + cache write |
-| Subsequent loads | Same (every run) | **< 1 s** (cache hit, skip parse) |
+| 计算时机 | CPU 离线算 `B@A` 大矩阵 | 延迟至 forward 前 GPU 计算 |
+| 瓶颈层（16384×16384） | 单层 1.5~2.0s | 单层 < 1ms |
+| Onyx_V1 全量加载 | ~185s | **~4.78s** |
 
-### IS_CHANGED Evolution
+### 轻量 JSON 磁盘缓存
+
+| | v0.x | v1.0 / v1.1 |
+|---|------|-------------|
+| 缓存 | 无，每次全量解析 | JSON ~30KB，SHA256 索引 |
+| 首次加载 | 5~30s | 同上 + 写缓存 |
+| 再次加载 | 同上（每轮重复） | **< 1s**（缓存命中免解析） |
+
+### IS_CHANGED 演进
 
 | | v0.x | v1.0 | v1.1 |
 |---|------|------|------|
-| Implementation | `random()` | `(name, strength, id(model.model))` | `random()` |
-| Behavior | Always executes | Skip on cache hit → **cross‑Queue failure** ❌ | Always executes ✅ |
-| Reliability | ✅ (no cache) | ❌ (depends on external cache) | ✅ |
+| 实现 | `random()` | `(lora_name, strength, id(model.model))` | `random()` |
+| 行为 | 每轮必执行 | 模型复用 → 跳过 → **跨 Queue 失效** ❌ | 每轮必执行 ✅ |
+| 可靠性 | ✅ 但无缓存 | ❌ 依赖外部缓存 | ✅ |
 
-### Benchmarks (Krea2 Turbo, Arc A770 16 GB)
+### 实测性能（Krea2 Turbo, Arc A770 16GB）
 
-| Scenario | v0.x | v1.0 / v1.1 |
-|----------|------|-------------|
-| First LoRA load (no cache) | ~10 s | **0.6–5 s** |
-| Same LoRA, new strength (cached) | ~10 s | **< 1 s** |
-| Switch LoRA (cached) | ~10 s | **< 1 s** |
+| 场景 | v0.x | v1.0 / v1.1 |
+|------|------|-------------|
+| 首次加载 LoRA（无缓存） | ~10s | **0.6~5s** |
+| 同 LoRA 改强度（缓存命中） | ~10s | **< 1s** |
+| 换用其他 LoRA（缓存命中） | ~10s | **< 1s** |
 
 ---
 
-## Quantization Workflow
+## 量化方案
 
-### Step 1: Analyze the source model
+### 第一步：分析原始模型（确定量化参数）
+
+使用内置分析脚本：
 
 ```bash
 cd ComfyUI/custom_nodes/ComfyUI-TINT4
-python analyse_quant.py <model.safetensors> <model_type>
+python analyse_quant.py <原始模型路径.safetensors> <模型类型>
 ```
 
-The script outputs:
-- Compatible group_size per layer (32/64/128/256)
-- QuaRot recommendation (outlier ratio)
-- Edge‑layer flags (should be excluded)
+脚本输出：
+- 每层兼容的 group_size（32/64/128/256）
+- 是否建议开启 QuaRot（Hadamard 旋转提升精度）
+- 边缘层标记（是否该排除不量化）
 
-Example:
+示例输出：
 ```
-Recommend  GS compatible            Outlier  Type  Layer name
-✅ Quant   [32, 64, 128, 256]      0.000    ATTN  blocks.0.attn.qkv.weight
-⚠️ QuaRot  [64, 128]               0.210    ATTN  blocks.3.attn.qkv.weight
-❌ Skip    [32]                     0.000    FFN   first.weight
+推荐       GS兼容                   异常值   类型   层名
+✅ 量化    [32, 64, 128, 256]      0.000   ATTN   blocks.0.attn.qkv.weight
+⚠️ QuaRot 推荐     [64, 128]       0.210   ATTN   blocks.3.attn.qkv.weight
+❌ 跳过（边缘层）   [32]           0.000   FFN    first.weight
 
-🎯 Suggestion: group_size=128, QuaRot=ON
+🎯 建议: group_size=128, QuaRot=ON
 ```
 
-### Step 2: Quantize in ComfyUI
+### 第二步：量化
 
-1. Add **TINT4 Model Quantizer** node
-2. Select source model, model type, QuaRot / group_size / output filename
+在 ComfyUI 中：
+1. 添加 **TINT4 Model Quantizer** 节点
+2. 选择原始模型、模型类型、参数（QuaRot / group_size / 输出文件名）
 3. Queue
 
-### Parameter Guide
+### 参数选择指南
 
-| Parameter | Recommendation |
-|---|---|
-| `enable_quarot` | ON when outlier ratio > 0.15 |
-| `group_size` | 128 (standard) / 64 (high‑quality) / 32 (Boogu forced) |
-| `device` | xpu / cuda / cpu (auto‑detected) |
-
----
-
-## Boogu Special Case
-
-**Boogu‑Image (OmniGen2‑derived)** has layers with `in_features < 64`, incompatible with group_size=128.
-
-The quantizer auto‑overrides to `group_size=32` (log: `[TINT4] Boogu: overriding group_size → 32`).  No manual adjustment needed.
+| 参数 | 推荐值 | 说明 |
+|---|---|---|
+| `enable_quarot` | 异常值 > 0.15 时 ON | Hadamard 旋转提升 INT4 精度 |
+| `group_size` | 128（标准）/ 64（高精度）/ 32（Boogu 强制） | 越小精度越高，文件略大 |
+| `device` | xpu / cuda / cpu | 自动检测可用设备 |
 
 ---
 
-## Analyse Script
+## Boogu 模型特殊要求
 
-`analyse_quant.py` analyzes raw FP16 models before quantization.
+**Boogu-Image (OmniGen2 衍生)** 部分层的 `in_features < 64`，无法使用 group_size=128。
+
+量化器会自动强制 `group_size=32`（日志显示 `[TINT4] Boogu: overriding group_size → 32`）。用户无需手动调整。
+
+---
+
+## 量化检测脚本
+
+`analyse_quant.py` 用于**量化前**分析原始 FP16 模型，确定最佳量化参数。
 
 ```bash
-python analyse_quant.py model.safetensors model_type
+python analyse_quant.py 模型路径.safetensors 模型类型
 ```
 
-Supports all model types: `krea2`, `flux2`, `z-image`, `wan`, `boogu`, `qwen`, `ernie`, `hidream`, `ltx2`, `chroma`, `ideogram4`, `anima`, `auto`.
+支持所有模型类型：`krea2`, `flux2`, `z-image`, `wan`, `boogu`, `qwen`, `ernie`, `hidream`, `ltx2`, `chroma`, `ideogram4`, `anima`, `auto`。
 
 ---
 
-## Using LoRAs
+## LoRA 使用
 
 ### LoRA Loader / Stack
 
-1. Insert TINT4 LoRA Loader / Stack after TINT4 Model Loader
-2. Select LoRA file and strength
-3. For multiple LoRAs, use Stack (up to 8) or chain single Loaders
+1. 在 TINT4 Model Loader 之后插入 TINT4 LoRA Loader / Stack
+2. 选择 LoRA 文件和强度
+3. 多 LoRA 叠加时使用 Stack 节点（最多 8 个），或串联多个单 LoRA Loader
 
-### Changing LoRA Effect
+### 更改 LoRA 效果
 
-| Action | Effect | Overhead |
-|--------|--------|----------|
-| Set `strength` to `0.0` | Disables that LoRA | Instant |
-| Switch to another LoRA file | Replace with new LoRA | < 1 s (cached) |
-| Adjust strength value | Change intensity only | < 1 s |
+| 操作 | 效果 | 耗时 |
+|------|------|------|
+| 将 `strength` 设为 `0.0` | 等效关闭该 LoRA | 即时生效 |
+| 切换为其他 LoRA 文件 | 替换为新 LoRA | < 1s（缓存命中） |
+| 调整 strength 数值 | 仅改变强度 | < 1s |
 
 ---
 
-## Known Issues
+## 已知问题
 
-### Bypass + Intermediate Nodes
+### Bypass + 中间节点交互
 
-**Trigger**: when intermediate nodes (samplers, switches, etc.) sit between the Model Loader and a LoRA Loader/Stack that is Bypassed.
+**触发条件**：LoRA Loader / Stack 与 Model Loader 之间**存在其他中间节点**（采样算法节点、开关节点等），且 LoRA 节点被 Bypass。
 
-**Symptom**: LoRA effect persists after Bypass, or fails to re‑enable after un‑bypassing.
+**症状**：Bypass 后 LoRA 残留，或取消 Bypass 后无法重新启用。
 
-**Cause**: ComfyUI's Bypass mechanism runs no cleanup logic.  Intermediate nodes may cache or alter model reference chains.
+**原因**：ComfyUI Bypass 不执行清理逻辑，中间节点可能缓存或改变模型引用链。
 
-**v1.1 mitigation**: the JS monitor (`tint4_monitor.js`) detects Bypass actions → sends a clear signal → Model Loader forces a LoRA reset on the next execution.
+**v1.1 缓解措施**：JS 监控（`tint4_monitor.js`）检测 Bypass 动作 → 发清除信号 → Model Loader 下次执行时强制清空 LoRA。
 
-**Manual workarounds**:
+**手动方案**：
 
-| Option | Action |
+| 方案 | 操作 |
 |---|---|
-| **A. Zero strength** | Set `strength` to `0.0` — instant ✅ |
-| **B. Un‑bypass** | Restore the node → next Queue auto‑re‑injects ✅ |
+| **A. 强度归零** | `strength` 改为 `0.0`，即时生效 ✅ |
+| **B. 取消 Bypass** | 恢复节点 → 下轮 Queue 自动重注 ✅ |
 
 ---
 
-## Supported Models
+## 支持模型
 
-| Model | Status |
+| 模型类型 | 状态 |
 |---|---|
-| `krea2` | ✅ Verified (LoRA fully functional) |
-| `flux2` | ✅ Verified (incl. QuaRot ON models) |
-| `boogu` | ✅ Architecture detection fixed |
-| `z-image` | ✅ LoRA working |
-| `wan` / `ltx2` / `qwen` / `ernie` / `hidream` / `chroma` / `ideogram4` / `anima` | ⚠️ Exclusion lists configured, awaiting community feedback |
-| `auto` | Empty exclusion list |
-| All legacy WINT4 models verified; TINT4 quantized models steadily progressing... | |
+| `krea2` | ✅ 实测通过（LoRA 全功能正常） |
+| `flux2` | ✅ 实测通过（含 QuaRot ON 模型） |
+| `boogu` | ✅ 架构检测已修复 |
+| `z-image` | ✅ LoRA 生效正常 |
+| `wan` / `ltx2` / `qwen` / `ernie` / `hidream` / `chroma` / `ideogram4` / `anima` | ⚠️ 排除列表已配置，等待社区反馈 |
+| `auto` | 空白排除列表，按需使用 |
+| 旧win4常用模型全部验证成功，时间原因tint4量化稳步验证推进中....  |
 
 ---
 
-## Reference
+## 参考
 
-| Model | Original | INT4 | Notes |
+| 模型 | 原始大小 | INT4 大小 | 说明 |
 |---|---|---|---|
-| Krea2 Turbo (28 layers) | ~24 GB | ~6 GB | Near‑native speed, LoRA < 1 s |
-| Flux2 Klein 9B (42 layers) | ~18 GB | ~4.5 GB | QuaRot rotated, LoRA works |
-| Z‑Image Turbo (30 layers) | ~11 GB | ~5 GB | dim=3840; RAM still ~30% less than fp16 |
+| Krea2 Turbo (28 层) | ~24 GB | ~6 GB | 推理速度接近原生，LoRA < 1s |
+| Flux2 Klein 9B (42 层) | ~18 GB | ~4.5 GB | 含 QuaRot 旋转，LoRA 正常 |
+| Z-Image Turbo (30 层) | ~11 GB | ~5 GB | dim=3840 大模型，RAM 占用较高但已比 FP16 少 ~30% |
 
-> Tested on: Intel Arc A770 16 GB, torch 2.12.1+xpu, ComfyUI 0.27.0.
-> Actual VRAM / speed varies with resolution and step count.
-
----
-
-## Contributing
+> 实测环境: Intel Arc A770 16GB, torch 2.12.1+xpu, ComfyUI 0.27.0。
+> 实际 VRAM / 速度因分辨率和采样步数而异。
 
 ---
 
-Thanks to deeoseek v4 pro
-Thanks to the torchao project https://github.com/pytorch/ao
+## 贡献
 
-Issues / PRs welcome.  New model support, bug fixes, documentation improvements — all appreciated.
+---
 
-## License
+鸣谢 deeoseek v4 pro
+鸣谢 torchao 项目 https://github.com/pytorch/ao
+
+欢迎提交 Issue / PR。新模型支持、bug 修复、文档改进均可。
+
+## 许可证
 
 MIT
 ```

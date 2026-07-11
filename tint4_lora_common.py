@@ -336,7 +336,7 @@ def _tint4_reset_all_loras(model) -> None:
 		log.warning("[TINT4] Reset called with no index table — skipped")
 
 	object.__setattr__(model.model, '_tint4_loras', [])
-	object.__setattr__(model.model, '_lora_needs_reset', False)
+	object.__setattr__(model.model, '_lora_needs_reset', True)
 
 
 # ═══════════════════════════════════════════════════════════════════
