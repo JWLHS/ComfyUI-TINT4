@@ -1,12 +1,13 @@
 """
-tint4_lora_stack.py — TINT4 LoRA Stack v1.0.2
+tint4_lora_stack.py — TINT4 LoRA Stack v1.0.3
 
 Multi-LoRA injection (≤5) with lightweight JSON cache + index-based O(1) matching.
 
+v1.0.4: runtime B-slice fallback in bake pre-hook (QKV 11520→3840).
+v1.0.3: fix QKV _inject_bake B slice.
 v1.0.2: bake delta computed on GPU in pre-hook.
 v1.0.1: fix mult_base default.
-v1.0.0: _parse_raw_lora_sd + index table + pre-hook bake + pop-before-inject
-		+ IS_CHANGED + timing. Version reset from old WINT series.
+v1.0.0: initial release.
 """
 import time
 import logging
@@ -101,7 +102,7 @@ def _resolve_qkv_slices(index: dict, norm: str) -> list[tuple[str, tuple | None]
 
 
 # ═══════════════════════════════════════════════════════════════
-# v1.0.2: GPU-side delta computation in pre-hook
+# v1.0.4: runtime B-slice fallback in pre-hook
 # ═══════════════════════════════════════════════════════════════
 
 def _make_bake_pre_hook(module: nn.Module):
@@ -118,12 +119,18 @@ def _make_bake_pre_hook(module: nn.Module):
 		applied = []
 		try:
 			for A_cpu, B_cpu, mult, sl, se in pending:
+				if sl is not None and se is not None and B_cpu.shape[0] != (se - sl):
+					B_cpu = B_cpu[sl:se].contiguous()
 				A_gpu = A_cpu.to(device=w_dev, dtype=w_dtype)
 				B_gpu = B_cpu.to(device=w_dev, dtype=w_dtype)
 				delta_gpu = (B_gpu @ A_gpu).mul_(mult)
 				if sl is not None and se is not None:
+					if delta_gpu.shape[0] != (se - sl):
+						delta_gpu = delta_gpu[sl:se].contiguous()
 					module.weight.data[sl:se].add_(delta_gpu)
 				else:
+					if delta_gpu.shape[0] != module.weight.shape[0]:
+						delta_gpu = delta_gpu[:module.weight.shape[0]].contiguous()
 					module.weight.data.add_(delta_gpu)
 				applied.append((delta_gpu.to(device=cpu, dtype=torch.float16).clone(), sl, se))
 		except Exception as e:
@@ -171,17 +178,6 @@ class TINT4LoRAStack:
 			s = kwargs.get(f"strength_{i}", 1.0)
 			parts.append((n, round(s, 4)))
 		current = tuple(parts)
-		active = [
-			(kwargs.get(f"lora_name_{i}"), kwargs.get(f"strength_{i}", 1.0))
-			for i in range(1, 9)
-			if kwargs.get(f"lora_name_{i}") not in (None, "None", "")
-			and abs(kwargs.get(f"strength_{i}", 1.0)) >= 1e-5
-		]
-		names = ", ".join(f"{n}({s:.1f})" for n, s in active) if active else "none"
-		if cls._prev_changed is None:
-			log.info(f"[TINT4 Stack] LoRAs: {names} | first load")
-		else:
-			log.info(f"[TINT4 Stack] LoRAs: {names} | reload")
 		cls._prev_changed = current
 		return current
 
@@ -402,10 +398,6 @@ class TINT4LoRAStack:
 		else:
 			le.setdefault(lora_name, []).append((A, B, mult))
 
-	# ═══════════════════════════════════════════════════════════════
-	# v1.0.2: store A/B/mult, NOT precomputed delta
-	# ═══════════════════════════════════════════════════════════════
-
 	def _inject_bake(
 		self, module, lora_name, down, up, alpha_val,
 		strength, qkv_slice, cpu,
@@ -414,6 +406,8 @@ class TINT4LoRAStack:
 			return
 		A = down.to(cpu, torch.float16).clone()
 		B = up.to(cpu, torch.float16).clone()
+		if qkv_slice is not None:
+			B = B[qkv_slice[0]:qkv_slice[1]].contiguous().clone()
 		rank = up.shape[1] if up.ndim >= 2 else 1
 		mult_base = (alpha_val / max(rank, 1)) if alpha_val else 1.0
 		mult = mult_base * strength

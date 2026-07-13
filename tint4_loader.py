@@ -173,7 +173,7 @@ class TINT4Linear(nn.Module):
 		entries = self._tint4_lora_entries
 		if entries is not None and len(entries) > 0:
 			if not getattr(self, '_tint4_diag_printed', False):
-				log.info(
+				log.debug(
 					f"[TINT4 Diag] FWD LoRA active: "
 					f"keys={list(entries.keys())} "
 					f"n_entries={sum(len(v) for v in entries.values())} "

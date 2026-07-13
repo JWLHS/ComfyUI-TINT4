@@ -236,9 +236,15 @@ class TINT4ModelQuantizer:
             base = (key.rsplit(".weight", 1)[0]
                     if key.endswith(".weight") else None)
 
-            # FP8 → FP16 (always)
+            # FP8 → FP16, applying per-tensor scale if present
             if tensor.dtype in (torch.float8_e4m3fn, torch.float8_e5m2):
-                sd[key] = tensor.to(torch.float16)
+                scale_key = f"{key.rsplit('.weight', 1)[0]}.weight_scale"
+                scale = sd.get(scale_key)
+                if scale is not None:
+                    sd[key] = (tensor.float() * scale.float()).to(torch.float16)
+                else:
+                    sd[key] = tensor.to(torch.float16)
+                tensor = sd[key]  # ← 更新引用，后续量化块用新值
 
             if base is None or not _should_quantize(
                     key, tensor, model_type):

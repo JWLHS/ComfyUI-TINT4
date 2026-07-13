@@ -176,10 +176,6 @@ def load_lora_cache(lora_path: str) -> dict | None:
     if not isinstance(entries, dict) or not entries:
         return None
 
-    log.info(
-        f"[Cache] Hit → {os.path.basename(lora_path)} "
-        f"({len(entries)} layers)"
-    )
     return {
         "format": payload.get("format", "standard"),
         "entries": entries,
