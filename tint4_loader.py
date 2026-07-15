@@ -186,6 +186,17 @@ class TINT4Linear(nn.Module):
 				  else torch.float16)
 			for lora_entries in entries.values():
 				for e in lora_entries:
+					if isinstance(e[0], str) and e[0] == "delta":
+							_, delta_cpu, mult = e[:3]
+							sl = e[3] if len(e) > 3 else None
+							se = e[4] if len(e) > 4 else None
+							delta_gpu = delta_cpu.to(device=dev, dtype=cd)
+							lo = x2.to(cd) @ delta_gpu.T * mult
+							if sl is not None:
+								out[:, sl:se] += lo
+							else:
+								out += lo
+							continue
 					if isinstance(e[0], str) and e[0] == "lokr":
 						_, w1, w2, mult, factor = e[:5]
 						sl = e[5] if len(e) > 5 else None
