@@ -443,22 +443,25 @@ class TINT4LoRAStack:
 		else:
 			delta = torch.kron(w1_c, w2_c)
 
-			# Pad/trim to match module dimensions
+			# Pad/trim rows to match module.out_features (ceiling-div)
 			target_out = module.out_features
 			if delta.shape[0] < target_out:
-				delta = delta.repeat(target_out // delta.shape[0], 1)
-			elif delta.shape[0] > target_out:
+				delta = delta.repeat(
+					(target_out + delta.shape[0] - 1) // delta.shape[0], 1)
+			if delta.shape[0] > target_out:
 				delta = delta[:target_out, :]
 
+			# Pad/trim cols to match module.in_features
 			target_in = module.in_features
 			if delta.shape[1] < target_in:
-				delta = delta.repeat(1, target_in // delta.shape[1])
-			elif delta.shape[1] > target_in:
+				delta = delta.repeat(
+					1, (target_in + delta.shape[1] - 1) // delta.shape[1])
+			if delta.shape[1] > target_in:
 				delta = delta[:, :target_in]
 
-			# QuaRot: rotate on accelerator, NOT cpu.
-			# Expanded delta (3840/10240/256 cols) always divides
-			# group_size=128, unlike raw w2 (64/16 cols).
+			# QuaRot: rotate expanded delta.
+			# w2 col dim (64/16) rarely divides group_size (128),
+			# but expanded delta columns (3840/10240/256) always do.
 			if quarot_enabled and H is not None and delta.shape[1] % group_size == 0:
 				delta = delta.to(dev)
 				delta = _rot_quarot_tensor(delta, H, group_size, dev)
@@ -469,6 +472,7 @@ class TINT4LoRAStack:
 			object.__setattr__(module, '_tint4_lokr_kron_cache',
 			                   {'key': cache_key, 'delta': delta})
 
+		# Mirror ComfyUI LoKrAdapter: direct w1/w2 → scale=1.0
 		mult = strength
 
 		le = getattr(module, '_tint4_lora_entries', None)
