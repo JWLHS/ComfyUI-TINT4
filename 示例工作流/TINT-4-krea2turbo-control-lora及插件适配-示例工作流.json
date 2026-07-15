@@ -1,7 +1,7 @@
 {
   "id": "591ce0dd-c0c3-4178-a51d-beaf9545f44d",
   "revision": 0,
-  "last_node_id": 81,
+  "last_node_id": 84,
   "last_link_id": 205,
   "nodes": [
     {
@@ -12,11 +12,11 @@
         -700
       ],
       "size": [
-        300.698828125,
-        82
+        320,
+        100
       ],
       "flags": {},
-      "order": 9,
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
@@ -58,13 +58,14 @@
       ],
       "title": "DepthAnythingV2深度预处理器",
       "properties": {
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "input_ue_unconnectable": {}
-        },
         "cnr_id": "comfyui_controlnet_aux",
         "ver": "unknown",
-        "Node name for S&R": "DepthAnythingV2Preprocessor"
+        "Node name for S&R": "DepthAnythingV2Preprocessor",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
       },
       "widgets_values": [
         "depth_anything_v2_vitl.pth",
@@ -113,133 +114,6 @@
       ]
     },
     {
-      "id": 57,
-      "type": "TINT4ModelLoader",
-      "pos": [
-        3060,
-        -1040
-      ],
-      "size": [
-        280,
-        120
-      ],
-      "flags": {},
-      "order": 1,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "links": [
-            203
-          ]
-        }
-      ],
-      "properties": {
-        "aux_id": "JWLHS/ComfyUI-TINT4",
-        "ver": "cdc5b13a2062f2883c72bb3bf70c7e0eeafba14c",
-        "Node name for S&R": "TINT4ModelLoader",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "input_ue_unconnectable": {},
-          "version": "7.8"
-        }
-      },
-      "widgets_values": [
-        "tint4\\krea2turbo_tint4.safetensors",
-        "krea2"
-      ]
-    },
-    {
-      "id": 76,
-      "type": "TINT4Krea2ControlLoRALoader",
-      "pos": [
-        3580,
-        -1040
-      ],
-      "size": [
-        340,
-        100
-      ],
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 203
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            187
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "TINT4Krea2ControlLoRALoader",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "input_ue_unconnectable": {},
-          "version": "7.8"
-        }
-      },
-      "widgets_values": [
-        "krea2\\krea2DepthControlnet_v10.safetensors",
-        1
-      ]
-    },
-    {
-      "id": 77,
-      "type": "TINT4Krea2ControlApply",
-      "pos": [
-        4160,
-        -980
-      ],
-      "size": [
-        220,
-        60
-      ],
-      "flags": {},
-      "order": 11,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 187
-        },
-        {
-          "name": "control_latent",
-          "type": "LATENT",
-          "link": 188
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            189
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "TINT4Krea2ControlApply",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "input_ue_unconnectable": {},
-          "version": "7.8"
-        }
-      },
-      "widgets_values": []
-    },
-    {
       "id": 75,
       "type": "TINT4Krea2ControlImageEncode",
       "pos": [
@@ -251,7 +125,7 @@
         260
       ],
       "flags": {},
-      "order": 10,
+      "order": 13,
       "mode": 0,
       "inputs": [
         {
@@ -289,6 +163,8 @@
         }
       ],
       "properties": {
+        "aux_id": "JWLHS/JWLHS-Krea-2-controlnet-TINT-4",
+        "ver": "ec436709ccb31620b9e73ec495e5545fdbaef627",
         "Node name for S&R": "TINT4Krea2ControlImageEncode",
         "ue_properties": {
           "widget_ue_connectable": {},
@@ -310,15 +186,15 @@
       "id": 81,
       "type": "GetImageSize",
       "pos": [
-        2885.535997070213,
-        -642.1449752673382
+        2880,
+        -640
       ],
       "size": [
         140,
-        124
+        140
       ],
       "flags": {},
-      "order": 7,
+      "order": 9,
       "mode": 0,
       "inputs": [
         {
@@ -350,13 +226,14 @@
         }
       ],
       "properties": {
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "input_ue_unconnectable": {}
-        },
         "cnr_id": "comfy-core",
         "ver": "0.27.0",
-        "Node name for S&R": "GetImageSize"
+        "Node name for S&R": "GetImageSize",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
       },
       "widgets_values": []
     },
@@ -372,7 +249,7 @@
         260
       ],
       "flags": {},
-      "order": 12,
+      "order": 15,
       "mode": 0,
       "inputs": [
         {
@@ -412,7 +289,7 @@
         300
       ],
       "flags": {},
-      "order": 6,
+      "order": 8,
       "mode": 0,
       "inputs": [
         {
@@ -459,7 +336,7 @@
       "flags": {
         "collapsed": false
       },
-      "order": 2,
+      "order": 1,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -503,7 +380,7 @@
         120
       ],
       "flags": {},
-      "order": 3,
+      "order": 2,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -554,7 +431,7 @@
       "flags": {
         "collapsed": false
       },
-      "order": 8,
+      "order": 11,
       "mode": 0,
       "inputs": [
         {
@@ -605,7 +482,7 @@
         480
       ],
       "flags": {},
-      "order": 13,
+      "order": 16,
       "mode": 0,
       "inputs": [
         {
@@ -649,7 +526,7 @@
         }
       },
       "widgets_values": [
-        693614245064278,
+        240340757070528,
         "randomize",
         8,
         1,
@@ -670,7 +547,7 @@
         60
       ],
       "flags": {},
-      "order": 14,
+      "order": 17,
       "mode": 0,
       "inputs": [
         {
@@ -717,7 +594,7 @@
         640
       ],
       "flags": {},
-      "order": 4,
+      "order": 3,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -764,7 +641,7 @@
       "flags": {
         "collapsed": false
       },
-      "order": 15,
+      "order": 18,
       "mode": 0,
       "inputs": [
         {
@@ -795,6 +672,274 @@
       },
       "widgets_values": [
         "kr2/001"
+      ]
+    },
+    {
+      "id": 57,
+      "type": "TINT4ModelLoader",
+      "pos": [
+        3060,
+        -1040
+      ],
+      "size": [
+        280,
+        120
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            203
+          ]
+        }
+      ],
+      "properties": {
+        "aux_id": "JWLHS/ComfyUI-TINT4",
+        "ver": "cdc5b13a2062f2883c72bb3bf70c7e0eeafba14c",
+        "Node name for S&R": "TINT4ModelLoader",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "tint4\\kr2\\krea2turbo_tint4.safetensors",
+        "krea2 (Krea 2)"
+      ]
+    },
+    {
+      "id": 77,
+      "type": "TINT4Krea2ControlApply",
+      "pos": [
+        4160,
+        -1040
+      ],
+      "size": [
+        220,
+        60
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 187
+        },
+        {
+          "name": "control_latent",
+          "type": "LATENT",
+          "link": 188
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            189
+          ]
+        }
+      ],
+      "properties": {
+        "aux_id": "JWLHS/JWLHS-Krea-2-controlnet-TINT-4",
+        "ver": "ec436709ccb31620b9e73ec495e5545fdbaef627",
+        "Node name for S&R": "TINT4Krea2ControlApply",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 82,
+      "type": "TINT4LoRAStack",
+      "pos": [
+        3420,
+        -1560
+      ],
+      "size": [
+        280,
+        420
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 4,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": null
+        }
+      ],
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        },
+        "aux_id": "JWLHS/ComfyUI-TINT4",
+        "ver": "25fe63dd698f122f5c016843b5beff0d1ab7991e",
+        "Node name for S&R": "TINT4LoRAStack"
+      },
+      "widgets_values": [
+        "None",
+        1,
+        "None",
+        1,
+        "None",
+        1,
+        "None",
+        1,
+        "None",
+        1,
+        "None",
+        1,
+        "None",
+        1,
+        "None",
+        1
+      ]
+    },
+    {
+      "id": 83,
+      "type": "TINT4LoRALoader",
+      "pos": [
+        3420,
+        -1700
+      ],
+      "size": [
+        280,
+        100
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 4,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": null
+        }
+      ],
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        },
+        "aux_id": "JWLHS/ComfyUI-TINT4",
+        "ver": "25fe63dd698f122f5c016843b5beff0d1ab7991e",
+        "Node name for S&R": "TINT4LoRALoader"
+      },
+      "widgets_values": [
+        "LTX-2.3\\10se蒸馏\\ltx-2.3-10se22b-distilled-lora-1.1_fro90_ceil36.safetensors",
+        1
+      ]
+    },
+    {
+      "id": 84,
+      "type": "Label (rgthree)",
+      "pos": [
+        2680,
+        -1940
+      ],
+      "size": [
+        1733.49609375,
+        200
+      ],
+      "flags": {
+        "allow_interaction": true
+      },
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "lora请使用专用节点",
+      "properties": {
+        "fontSize": 200,
+        "fontFamily": "Arial",
+        "fontColor": "#f22fffff",
+        "textAlign": "left",
+        "backgroundColor": "transparent",
+        "padding": 0,
+        "borderRadius": 0,
+        "angle": 0,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "color": "#fff0",
+      "bgcolor": "#fff0"
+    },
+    {
+      "id": 76,
+      "type": "TINT4Krea2ControlLoRALoader",
+      "pos": [
+        3760,
+        -1040
+      ],
+      "size": [
+        340,
+        100
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 203
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            187
+          ]
+        }
+      ],
+      "properties": {
+        "aux_id": "JWLHS/JWLHS-Krea-2-controlnet-TINT-4",
+        "ver": "ec436709ccb31620b9e73ec495e5545fdbaef627",
+        "Node name for S&R": "TINT4Krea2ControlLoRALoader",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "krea2\\krea2DepthControlnet_v10.safetensors",
+        1
       ]
     }
   ],
@@ -971,10 +1116,10 @@
     "ue_links": [],
     "links_added_by_ue": [],
     "ds": {
-      "scale": 1.3006231086783444,
+      "scale": 0.7341678376744263,
       "offset": [
-        -3122.3887726984453,
-        1080.2890234601339
+        -2146.355778897283,
+        1908.596161716196
       ]
     },
     "frontendVersion": "1.45.20",

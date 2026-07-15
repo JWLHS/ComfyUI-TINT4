@@ -1,19 +1,19 @@
 {
   "id": "d495627a-65a1-4362-9da2-212c635ab254",
   "revision": 0,
-  "last_node_id": 96,
-  "last_link_id": 132,
+  "last_node_id": 142,
+  "last_link_id": 188,
   "nodes": [
     {
-      "id": 93,
-      "type": "TINT4ModelLoader",
+      "id": 13,
+      "type": "CLIPLoader",
       "pos": [
-        -280,
-        -220
+        -180,
+        320
       ],
       "size": [
         280,
-        100
+        120
       ],
       "flags": {},
       "order": 0,
@@ -21,79 +21,44 @@
       "inputs": [],
       "outputs": [
         {
-          "name": "model",
-          "type": "MODEL",
-          "links": [
-            130
-          ]
-        }
-      ],
-      "properties": {
-        "aux_id": "JWLHS/ComfyUI-TINT4",
-        "ver": "cdc5b13a2062f2883c72bb3bf70c7e0eeafba14c",
-        "Node name for S&R": "TINT4ModelLoader",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "input_ue_unconnectable": {},
-          "version": "7.8"
-        }
-      },
-      "widgets_values": [
-        "tint4\\krea2turbo_tint4.safetensors",
-        "krea2"
-      ]
-    },
-    {
-      "id": 73,
-      "type": "CLIPTextEncode",
-      "pos": [
-        40,
-        -60
-      ],
-      "size": [
-        400,
-        200
-      ],
-      "flags": {},
-      "order": 4,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "clip",
+          "name": "CLIP",
           "type": "CLIP",
-          "link": 84
-        }
-      ],
-      "outputs": [
-        {
-          "name": "CONDITIONING",
-          "type": "CONDITIONING",
+          "slot_index": 0,
           "links": [
-            119,
-            131
+            84
           ]
         }
       ],
+      "title": "CLIP Loader - Krea2",
       "properties": {
         "cnr_id": "comfy-core",
-        "ver": "0.26.0",
-        "Node name for S&R": "CLIPTextEncode",
+        "ver": "0.25.0",
+        "Node name for S&R": "CLIPLoader",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
         "ue_properties": {
           "widget_ue_connectable": {},
-          "input_ue_unconnectable": {},
-          "version": "7.8"
+          "version": "7.8",
+          "input_ue_unconnectable": {}
         }
       },
       "widgets_values": [
-        "一幅极致精细的东方奢华青绿山水装饰画，竖构图，融合中国传统青绿山水、金箔漆画、珐琅浮雕、矿物颜料壁画与高端东方屏风艺术。画面呈现日出或夕阳时分的仙境山水：远方一轮金色太阳贴近地平线，暖金色光芒穿过云层与薄雾，倒映在蜿蜒的河流与湖面上，形成一条从远景延伸到前景的发光金色水路。\n\n前景左下有一座精致中式亭台，红柱、金边、深蓝黑瓦顶，亭子坐落在青绿色山石与古松之间；画面右下还有一座较小的亭子，与主亭形成呼应。山体层层叠叠，使用孔雀石绿、石青蓝、靛蓝、墨黑、灰白与朱砂红矿物色堆叠，山脉边缘以不规则金箔线勾勒，像镶嵌在漆面上的金属纹理。山石有半透明玉石般的质感，局部像珐琅和琉璃，蓝绿色山体内部有深浅渐变和晶体光泽。\n\n整幅画面充满流动的云雾，白色雾气从山间、水面和亭台周围升起，形成柔软的层次。金色线条沿着云雾、水流、山脊、太阳光和远方云纹自然流动，像熔化的金箔嵌入画面，局部有真实金属反光。河面和水道上布满碎金般的反射，高光呈现厚重金箔质感，闪烁但不刺眼。松树以传统水墨笔触绘制，黑色枝干、青黑松针，部分边缘带金色描线。\n\n背景是温润的古旧宣纸、丝绢或羊皮纸底色，带轻微泛黄、茶色水痕、矿物颜料渗化痕迹。整体画面既有传统工笔山水的精密结构，又有现代奢华装饰艺术的材质表现。细节极多，亭台栏杆、瓦片、松枝、山体纹理、水面金光、云雾边缘都精细可见。画面气质宏大、华丽、神秘、东方仙境感，高级收藏级艺术品，像一幅金箔珐琅青绿山水屏风。\n\n超精细，高分辨率，极致细节，金箔反光，矿物颜料，青绿山水，东方仙境，奢华屏风，珐琅浮雕，漆画质感，玉石质感，厚涂与工笔结合，层次丰富，空间纵深强，S形河流构图，云雾缭绕，日出金光，亭台楼阁，古松，远山，水面倒影，收藏级东方艺术。"
+        "qwen\\qwen3vl_4b_bf16.safetensors",
+        "krea2",
+        "default"
       ]
     },
     {
       "id": 45,
       "type": "EmptyLatentImage",
       "pos": [
-        -280,
-        120
+        -180,
+        500
       ],
       "size": [
         280,
@@ -129,88 +94,15 @@
       ]
     },
     {
-      "id": 2,
-      "type": "KSampler",
+      "id": 93,
+      "type": "TINT4ModelLoader",
       "pos": [
-        780,
-        -100
-      ],
-      "size": [
-        420,
-        700
-      ],
-      "flags": {},
-      "order": 6,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 130
-        },
-        {
-          "name": "positive",
-          "type": "CONDITIONING",
-          "link": 131
-        },
-        {
-          "name": "negative",
-          "type": "CONDITIONING",
-          "link": 8
-        },
-        {
-          "name": "latent_image",
-          "type": "LATENT",
-          "link": 50
-        }
-      ],
-      "outputs": [
-        {
-          "name": "LATENT",
-          "type": "LATENT",
-          "slot_index": 0,
-          "links": [
-            2
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.25.0",
-        "Node name for S&R": "KSampler",
-        "enableTabs": false,
-        "tabWidth": 65,
-        "tabXOffset": 10,
-        "hasSecondTab": false,
-        "secondTabText": "Send Back",
-        "secondTabOffset": 80,
-        "secondTabWidth": 65,
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "version": "7.8",
-          "input_ue_unconnectable": {}
-        }
-      },
-      "widgets_values": [
-        875493839644067,
-        "randomize",
-        8,
-        1,
-        "euler",
-        "simple",
-        1
-      ]
-    },
-    {
-      "id": 4,
-      "type": "VAELoader",
-      "pos": [
-        920,
-        -220
+        -180,
+        140
       ],
       "size": [
         280,
-        80
+        100
       ],
       "flags": {},
       "order": 2,
@@ -218,42 +110,34 @@
       "inputs": [],
       "outputs": [
         {
-          "name": "VAE",
-          "type": "VAE",
-          "slot_index": 0,
+          "name": "model",
+          "type": "MODEL",
           "links": [
-            3
+            187
           ]
         }
       ],
-      "title": "VAE Loader",
       "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.25.0",
-        "Node name for S&R": "VAELoader",
-        "enableTabs": false,
-        "tabWidth": 65,
-        "tabXOffset": 10,
-        "hasSecondTab": false,
-        "secondTabText": "Send Back",
-        "secondTabOffset": 80,
-        "secondTabWidth": 65,
+        "aux_id": "JWLHS/ComfyUI-TINT4",
+        "ver": "cdc5b13a2062f2883c72bb3bf70c7e0eeafba14c",
+        "Node name for S&R": "TINT4ModelLoader",
         "ue_properties": {
           "widget_ue_connectable": {},
-          "version": "7.8",
-          "input_ue_unconnectable": {}
+          "input_ue_unconnectable": {},
+          "version": "7.8"
         }
       },
       "widgets_values": [
-        "qwen\\qwen_image_vae.safetensors"
+        "tint4\\ns\\moody-KR2-turbo_tint4.safetensors",
+        "krea2 (Krea 2)"
       ]
     },
     {
       "id": 8,
       "type": "ConditioningZeroOut",
       "pos": [
-        480,
-        120
+        300,
+        320
       ],
       "size": [
         240,
@@ -262,7 +146,7 @@
       "flags": {
         "collapsed": false
       },
-      "order": 5,
+      "order": 8,
       "mode": 0,
       "inputs": [
         {
@@ -302,35 +186,57 @@
       "widgets_values": []
     },
     {
-      "id": 13,
-      "type": "CLIPLoader",
+      "id": 2,
+      "type": "KSampler",
       "pos": [
-        -280,
-        -60
+        600,
+        60
       ],
       "size": [
-        280,
-        120
+        480,
+        700
       ],
-      "flags": {},
-      "order": 3,
+      "flags": {
+        "collapsed": false
+      },
+      "order": 9,
       "mode": 0,
-      "inputs": [],
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 187
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 188
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 8
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 50
+        }
+      ],
       "outputs": [
         {
-          "name": "CLIP",
-          "type": "CLIP",
+          "name": "LATENT",
+          "type": "LATENT",
           "slot_index": 0,
           "links": [
-            84
+            182
           ]
         }
       ],
-      "title": "CLIP Loader - Krea2",
       "properties": {
         "cnr_id": "comfy-core",
         "ver": "0.25.0",
-        "Node name for S&R": "CLIPLoader",
+        "Node name for S&R": "KSampler",
         "enableTabs": false,
         "tabWidth": 65,
         "tabXOffset": 10,
@@ -345,30 +251,170 @@
         }
       },
       "widgets_values": [
-        "krea2\\qwen3vl_4b_fp8_scaled.safetensors",
-        "krea2",
-        "default"
+        572472238654239,
+        "randomize",
+        10,
+        1,
+        "euler",
+        "simple",
+        1
+      ]
+    },
+    {
+      "id": 136,
+      "type": "RAMCleanup",
+      "pos": [
+        1160,
+        60
+      ],
+      "size": [
+        280,
+        140
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "任意",
+          "name": "anything",
+          "shape": 7,
+          "type": "*",
+          "link": 182
+        },
+        {
+          "label": "清理文件缓存",
+          "name": "clean_file_cache",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "clean_file_cache"
+          },
+          "link": null
+        },
+        {
+          "label": "清理进程内存",
+          "name": "clean_processes",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "clean_processes"
+          },
+          "link": null
+        },
+        {
+          "label": "清理未使用的 DLL",
+          "name": "clean_dlls",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "clean_dlls"
+          },
+          "link": null
+        },
+        {
+          "label": "重试次数",
+          "name": "retry_times",
+          "type": "INT",
+          "widget": {
+            "name": "retry_times"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "label": "输出",
+          "name": "output",
+          "type": "*",
+          "links": [
+            183
+          ]
+        }
+      ],
+      "title": "释放内存",
+      "properties": {
+        "cnr_id": "comfyui_memory_cleanup",
+        "ver": "58de13a6090e04408e343501ff8902c034d9f518",
+        "Node name for S&R": "RAMCleanup",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        true,
+        true,
+        true,
+        3
+      ]
+    },
+    {
+      "id": 4,
+      "type": "VAELoader",
+      "pos": [
+        1180,
+        260
+      ],
+      "size": [
+        280,
+        80
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "slot_index": 0,
+          "links": [
+            3
+          ]
+        }
+      ],
+      "title": "VAE Loader",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.25.0",
+        "Node name for S&R": "VAELoader",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "qwen\\qwen_image_vae.safetensors"
       ]
     },
     {
       "id": 3,
       "type": "VAEDecode",
       "pos": [
-        1240,
-        -200
+        1500,
+        80
       ],
       "size": [
         240,
         80
       ],
-      "flags": {},
-      "order": 7,
+      "flags": {
+        "collapsed": true
+      },
+      "order": 11,
       "mode": 0,
       "inputs": [
         {
           "name": "samples",
           "type": "LATENT",
-          "link": 2
+          "link": 183
         },
         {
           "name": "vae",
@@ -410,8 +456,8 @@
       "id": 16,
       "type": "SaveImage",
       "pos": [
-        1520,
-        -160
+        1700,
+        60
       ],
       "size": [
         520,
@@ -420,7 +466,7 @@
       "flags": {
         "collapsed": false
       },
-      "order": 8,
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
@@ -454,19 +500,190 @@
         }
       },
       "widgets_values": [
-        "ComfyUI"
+        "kr2/测试"
+      ]
+    },
+    {
+      "id": 139,
+      "type": "TINT4LoRAStack",
+      "pos": [
+        320,
+        -500
+      ],
+      "size": [
+        270,
+        418
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 4,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": null
+        }
+      ],
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {}
+        },
+        "aux_id": "JWLHS/ComfyUI-TINT4",
+        "ver": "25fe63dd698f122f5c016843b5beff0d1ab7991e",
+        "Node name for S&R": "TINT4LoRAStack"
+      },
+      "widgets_values": [
+        "None",
+        1,
+        "None",
+        1,
+        "None",
+        1,
+        "None",
+        1,
+        "None",
+        1,
+        "None",
+        1,
+        "None",
+        1,
+        "None",
+        1
+      ]
+    },
+    {
+      "id": 141,
+      "type": "TINT4LoRALoader",
+      "pos": [
+        320,
+        -640
+      ],
+      "size": [
+        270,
+        82
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 4,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": null
+        }
+      ],
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {}
+        },
+        "aux_id": "JWLHS/ComfyUI-TINT4",
+        "ver": "25fe63dd698f122f5c016843b5beff0d1ab7991e",
+        "Node name for S&R": "TINT4LoRALoader"
+      },
+      "widgets_values": [
+        "LTX-2.3\\10se蒸馏\\ltx-2.3-10se22b-distilled-lora-1.1_fro90_ceil36.safetensors",
+        1
+      ]
+    },
+    {
+      "id": 142,
+      "type": "Label (rgthree)",
+      "pos": [
+        -420,
+        -880
+      ],
+      "size": [
+        1733.49609375,
+        200
+      ],
+      "flags": {
+        "allow_interaction": true
+      },
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "lora请使用专用节点",
+      "properties": {
+        "fontSize": 200,
+        "fontFamily": "Arial",
+        "fontColor": "#f22fffff",
+        "textAlign": "left",
+        "backgroundColor": "transparent",
+        "padding": 0,
+        "borderRadius": 0,
+        "angle": 0,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {}
+        }
+      },
+      "color": "#fff0",
+      "bgcolor": "#fff0"
+    },
+    {
+      "id": 73,
+      "type": "CLIPTextEncode",
+      "pos": [
+        140,
+        60
+      ],
+      "size": [
+        400,
+        200
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 84
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            119,
+            188
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.26.0",
+        "Node name for S&R": "CLIPTextEncode",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "一个女人站在街边。"
       ]
     }
   ],
   "links": [
-    [
-      2,
-      2,
-      0,
-      3,
-      0,
-      "LATENT"
-    ],
     [
       3,
       4,
@@ -508,7 +725,31 @@
       "CONDITIONING"
     ],
     [
-      130,
+      132,
+      3,
+      0,
+      16,
+      0,
+      "IMAGE"
+    ],
+    [
+      182,
+      2,
+      0,
+      136,
+      0,
+      "LATENT"
+    ],
+    [
+      183,
+      136,
+      0,
+      3,
+      0,
+      "LATENT"
+    ],
+    [
+      187,
       93,
       0,
       2,
@@ -516,20 +757,12 @@
       "MODEL"
     ],
     [
-      131,
+      188,
       73,
       0,
       2,
       1,
       "CONDITIONING"
-    ],
-    [
-      132,
-      3,
-      0,
-      16,
-      0,
-      "IMAGE"
     ]
   ],
   "groups": [
@@ -537,8 +770,8 @@
       "id": 1,
       "title": "Krea2---TINT4",
       "bounding": [
-        -300,
-        -300,
+        -200,
+        -40,
         2440,
         960
       ],
@@ -549,10 +782,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 1.03582814979866,
+      "scale": 0.8264462809917358,
       "offset": [
-        299.42464500009453,
-        399.7775056998531
+        962.7907915339373,
+        1210.608472149205
       ]
     },
     "workflow_notes": "Native ComfyUI 0.25.0+ Krea2 workflow. Uses official CLIPLoader/UNETLoader nodes. Requires 3 model files (see Note node).",
@@ -560,6 +793,7 @@
     "qgn_navigation_groups": [],
     "qgn_locked": false,
     "links_added_by_ue": [],
+    "k2cf_state_id": "k2cf_1783914127949_ix337mrarz",
     "frontendVersion": "1.45.20",
     "VHS_latentpreview": false,
     "VHS_latentpreviewrate": 0,

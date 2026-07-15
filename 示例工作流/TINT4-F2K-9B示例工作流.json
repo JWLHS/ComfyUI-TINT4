@@ -1,7 +1,7 @@
 {
   "id": "92112d97-bb64-4b44-86f2-ea5691ef8f6e",
   "revision": 0,
-  "last_node_id": 106,
+  "last_node_id": 109,
   "last_link_id": 201,
   "nodes": [
     {
@@ -112,7 +112,7 @@
         100
       ],
       "flags": {},
-      "order": 9,
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
@@ -167,7 +167,7 @@
         120
       ],
       "flags": {},
-      "order": 8,
+      "order": 11,
       "mode": 0,
       "inputs": [
         {
@@ -220,73 +220,6 @@
         1024,
         1024,
         1
-      ]
-    },
-    {
-      "id": 81,
-      "type": "Flux2Scheduler",
-      "pos": [
-        620,
-        640
-      ],
-      "size": [
-        280,
-        120
-      ],
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "width",
-          "type": "INT",
-          "widget": {
-            "name": "width"
-          },
-          "link": 158
-        },
-        {
-          "name": "height",
-          "type": "INT",
-          "widget": {
-            "name": "height"
-          },
-          "link": 159
-        }
-      ],
-      "outputs": [
-        {
-          "name": "SIGMAS",
-          "type": "SIGMAS",
-          "links": [
-            166
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.8.2",
-        "Node name for S&R": "Flux2Scheduler",
-        "enableTabs": false,
-        "tabWidth": 65,
-        "tabXOffset": 10,
-        "hasSecondTab": false,
-        "secondTabText": "Send Back",
-        "secondTabOffset": 80,
-        "secondTabWidth": 65,
-        "ue_properties": {
-          "widget_ue_connectable": {
-            "width": true,
-            "height": true
-          },
-          "version": "7.8",
-          "input_ue_unconnectable": {}
-        }
-      },
-      "widgets_values": [
-        5,
-        1024,
-        1024
       ]
     },
     {
@@ -346,7 +279,7 @@
         100
       ],
       "flags": {},
-      "order": 11,
+      "order": 14,
       "mode": 0,
       "inputs": [
         {
@@ -437,7 +370,7 @@
         }
       },
       "widgets_values": [
-        877484804211614,
+        1036075312927149,
         "randomize"
       ]
     },
@@ -494,157 +427,6 @@
       ]
     },
     {
-      "id": 91,
-      "type": "CLIPLoader",
-      "pos": [
-        -360,
-        360
-      ],
-      "size": [
-        380,
-        120
-      ],
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "CLIP",
-          "type": "CLIP",
-          "links": [
-            172,
-            173
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.8.2",
-        "Node name for S&R": "CLIPLoader",
-        "enableTabs": false,
-        "tabWidth": 65,
-        "tabXOffset": 10,
-        "hasSecondTab": false,
-        "secondTabText": "Send Back",
-        "secondTabOffset": 80,
-        "secondTabWidth": 65,
-        "models": [
-          {
-            "name": "qwen_3_4b.safetensors",
-            "url": "https://huggingface.co/Comfy-Org/flux2-klein/resolve/main/split_files/text_encoders/qwen_3_4b.safetensors",
-            "directory": "text_encoders"
-          }
-        ],
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "version": "7.8",
-          "input_ue_unconnectable": {}
-        }
-      },
-      "widgets_values": [
-        "qwen\\qwen3vl_8b_fp8_scaled.safetensors",
-        "flux2",
-        "default"
-      ]
-    },
-    {
-      "id": 106,
-      "type": "TINT4ModelLoader",
-      "pos": [
-        -340,
-        180
-      ],
-      "size": [
-        340,
-        120
-      ],
-      "flags": {},
-      "order": 6,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "links": [
-            201
-          ]
-        }
-      ],
-      "properties": {
-        "aux_id": "JWLHS/ComfyUI-TINT4",
-        "ver": "cdc5b13a2062f2883c72bb3bf70c7e0eeafba14c",
-        "Node name for S&R": "TINT4ModelLoader",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "input_ue_unconnectable": {},
-          "version": "7.8"
-        }
-      },
-      "widgets_values": [
-        "tint4\\f2k-9B_tint4.safetensors",
-        "flux2"
-      ]
-    },
-    {
-      "id": 93,
-      "type": "CLIPTextEncode",
-      "pos": [
-        80,
-        120
-      ],
-      "size": [
-        440,
-        280
-      ],
-      "flags": {},
-      "order": 10,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 173
-        }
-      ],
-      "outputs": [
-        {
-          "name": "CONDITIONING",
-          "type": "CONDITIONING",
-          "slot_index": 0,
-          "links": [
-            161
-          ]
-        }
-      ],
-      "title": "CLIP Text Encode (Positive Prompt)",
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.8.2",
-        "Node name for S&R": "CLIPTextEncode",
-        "enableTabs": false,
-        "tabWidth": 65,
-        "tabXOffset": 10,
-        "hasSecondTab": false,
-        "secondTabText": "Send Back",
-        "secondTabOffset": 80,
-        "secondTabWidth": 65,
-        "ue_properties": {
-          "widget_ue_connectable": {
-            "text": true
-          },
-          "version": "7.8",
-          "input_ue_unconnectable": {}
-        }
-      },
-      "widgets_values": [
-        "一幅极致精细的东方奢华青绿山水装饰画，竖构图，融合中国传统青绿山水、金箔漆画、珐琅浮雕、矿物颜料壁画与高端东方屏风艺术。画面呈现日出或夕阳时分的仙境山水：远方一轮金色太阳贴近地平线，暖金色光芒穿过云层与薄雾，倒映在蜿蜒的河流与湖面上，形成一条从远景延伸到前景的发光金色水路。\n\n前景左下有一座精致中式亭台，红柱、金边、深蓝黑瓦顶，亭子坐落在青绿色山石与古松之间；画面右下还有一座较小的亭子，与主亭形成呼应。山体层层叠叠，使用孔雀石绿、石青蓝、靛蓝、墨黑、灰白与朱砂红矿物色堆叠，山脉边缘以不规则金箔线勾勒，像镶嵌在漆面上的金属纹理。山石有半透明玉石般的质感，局部像珐琅和琉璃，蓝绿色山体内部有深浅渐变和晶体光泽。\n\n整幅画面充满流动的云雾，白色雾气从山间、水面和亭台周围升起，形成柔软的层次。金色线条沿着云雾、水流、山脊、太阳光和远方云纹自然流动，像熔化的金箔嵌入画面，局部有真实金属反光。河面和水道上布满碎金般的反射，高光呈现厚重金箔质感，闪烁但不刺眼。松树以传统水墨笔触绘制，黑色枝干、青黑松针，部分边缘带金色描线。\n\n背景是温润的古旧宣纸、丝绢或羊皮纸底色，带轻微泛黄、茶色水痕、矿物颜料渗化痕迹。整体画面既有传统工笔山水的精密结构，又有现代奢华装饰艺术的材质表现。细节极多，亭台栏杆、瓦片、松枝、山体纹理、水面金光、云雾边缘都精细可见。画面气质宏大、华丽、神秘、东方仙境感，高级收藏级艺术品，像一幅金箔珐琅青绿山水屏风。\n\n超精细，高分辨率，极致细节，金箔反光，矿物颜料，青绿山水，东方仙境，奢华屏风，珐琅浮雕，漆画质感，玉石质感，厚涂与工笔结合，层次丰富，空间纵深强，S形河流构图，云雾缭绕，日出金光，亭台楼阁，古松，远山，水面倒影，收藏级东方艺术。"
-      ],
-      "color": "#232",
-      "bgcolor": "#353"
-    },
-    {
       "id": 84,
       "type": "VAEDecode",
       "pos": [
@@ -656,7 +438,7 @@
         60
       ],
       "flags": {},
-      "order": 13,
+      "order": 16,
       "mode": 0,
       "inputs": [
         {
@@ -711,7 +493,7 @@
         340
       ],
       "flags": {},
-      "order": 12,
+      "order": 15,
       "mode": 0,
       "inputs": [
         {
@@ -785,7 +567,7 @@
         500
       ],
       "flags": {},
-      "order": 14,
+      "order": 17,
       "mode": 0,
       "inputs": [
         {
@@ -821,6 +603,361 @@
       "widgets_values": [
         "Flux2-Klein"
       ]
+    },
+    {
+      "id": 107,
+      "type": "TINT4LoRAStack",
+      "pos": [
+        120,
+        -380
+      ],
+      "size": [
+        280,
+        420
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 4,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": null
+        }
+      ],
+      "properties": {
+        "aux_id": "JWLHS/ComfyUI-TINT4",
+        "ver": "25fe63dd698f122f5c016843b5beff0d1ab7991e",
+        "Node name for S&R": "TINT4LoRAStack",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "None",
+        1,
+        "None",
+        1,
+        "None",
+        1,
+        "None",
+        1,
+        "None",
+        1,
+        "None",
+        1,
+        "None",
+        1,
+        "None",
+        1
+      ]
+    },
+    {
+      "id": 108,
+      "type": "TINT4LoRALoader",
+      "pos": [
+        120,
+        -520
+      ],
+      "size": [
+        280,
+        100
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 4,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": null
+        }
+      ],
+      "properties": {
+        "aux_id": "JWLHS/ComfyUI-TINT4",
+        "ver": "25fe63dd698f122f5c016843b5beff0d1ab7991e",
+        "Node name for S&R": "TINT4LoRALoader",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "LTX-2.3\\10se蒸馏\\ltx-2.3-10se22b-distilled-lora-1.1_fro90_ceil36.safetensors",
+        1
+      ]
+    },
+    {
+      "id": 109,
+      "type": "Label (rgthree)",
+      "pos": [
+        -620,
+        -760
+      ],
+      "size": [
+        1733.49609375,
+        200
+      ],
+      "flags": {
+        "allow_interaction": true
+      },
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "lora请使用专用节点",
+      "properties": {
+        "fontSize": 200,
+        "fontFamily": "Arial",
+        "fontColor": "#f22fffff",
+        "textAlign": "left",
+        "backgroundColor": "transparent",
+        "padding": 0,
+        "borderRadius": 0,
+        "angle": 0,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "color": "#fff0",
+      "bgcolor": "#fff0"
+    },
+    {
+      "id": 106,
+      "type": "TINT4ModelLoader",
+      "pos": [
+        -340,
+        180
+      ],
+      "size": [
+        340,
+        120
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            201
+          ]
+        }
+      ],
+      "properties": {
+        "aux_id": "JWLHS/ComfyUI-TINT4",
+        "ver": "cdc5b13a2062f2883c72bb3bf70c7e0eeafba14c",
+        "Node name for S&R": "TINT4ModelLoader",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        "tint4\\f2k9b\\F2K-TURBO-9B_tint4.safetensors",
+        "flux2 (Flux.2)"
+      ]
+    },
+    {
+      "id": 91,
+      "type": "CLIPLoader",
+      "pos": [
+        -360,
+        360
+      ],
+      "size": [
+        380,
+        120
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            172,
+            173
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.8.2",
+        "Node name for S&R": "CLIPLoader",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "models": [
+          {
+            "name": "qwen_3_4b.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/flux2-klein/resolve/main/split_files/text_encoders/qwen_3_4b.safetensors",
+            "directory": "text_encoders"
+          }
+        ],
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "qwen\\qwen3vl_8b_fp8_scaled.safetensors",
+        "flux2",
+        "default"
+      ]
+    },
+    {
+      "id": 81,
+      "type": "Flux2Scheduler",
+      "pos": [
+        620,
+        640
+      ],
+      "size": [
+        280,
+        120
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": 158
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": 159
+        }
+      ],
+      "outputs": [
+        {
+          "name": "SIGMAS",
+          "type": "SIGMAS",
+          "links": [
+            166
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.8.2",
+        "Node name for S&R": "Flux2Scheduler",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {
+            "width": true,
+            "height": true
+          },
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        5,
+        1024,
+        1024
+      ]
+    },
+    {
+      "id": 93,
+      "type": "CLIPTextEncode",
+      "pos": [
+        80,
+        120
+      ],
+      "size": [
+        440,
+        280
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 173
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "slot_index": 0,
+          "links": [
+            161
+          ]
+        }
+      ],
+      "title": "CLIP Text Encode (Positive Prompt)",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.8.2",
+        "Node name for S&R": "CLIPTextEncode",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "ue_properties": {
+          "widget_ue_connectable": {
+            "text": true
+          },
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "一个女人站立，纯白背景。"
+      ],
+      "color": "#232",
+      "bgcolor": "#353"
     }
   ],
   "links": [
@@ -1014,10 +1151,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.8074449810978225,
+      "scale": 0.6066453652124902,
       "offset": [
-        516.1813373454745,
-        361.68098616710677
+        1426.76890116277,
+        1392.8659347370071
       ]
     },
     "frontendVersion": "1.45.20",
@@ -1027,7 +1164,8 @@
     "VHS_MetadataImage": true,
     "VHS_KeepIntermediate": true,
     "ue_links": [],
-    "links_added_by_ue": []
+    "links_added_by_ue": [],
+    "k2cf_state_id": "k2cf_1783914127949_ix337mrarz"
   },
   "version": 0.4
 }
