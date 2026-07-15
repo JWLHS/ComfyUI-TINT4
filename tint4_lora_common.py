@@ -1,9 +1,12 @@
 """
-tint4_lora_common.py  v1.1
+tint4_lora_common.py  v1.2
 ─────────────────────────────
 Shared LoRA utilities — path normalization, format detection,
 QuaRot, raw LoRA parsing, index-based reset, bypass signal I/O.
 
+v1.2: fix _normalize_layer_path for lora_unet_ / lora_transformer_ /
+	  lycoris_ underscore formats; add single_transformer_blocks
+	  and underscore block-name variants to mapping.
 v1.1: +_read_clear_signal / _write_clear_signal (JS→Python bridge).
 v1.0.2: reset handles pending/applied/legacy bake states.
 """
@@ -41,7 +44,8 @@ def _normalize_layer_path(path: str) -> str | None:
 	stripped_prefix = None
 	for pf in ["lora_transformer_", "lora_unet_", "lycoris_"]:
 		if path.startswith(pf):
-			path = path[len(pf):].replace("_", ".")
+			# v1.2: strip prefix, defer _ → . to after block-name mapping
+			path = path[len(pf):]
 			stripped_prefix = pf
 			break
 	if stripped_prefix is None:
@@ -53,15 +57,23 @@ def _normalize_layer_path(path: str) -> str | None:
 		return None
 	if path.startswith("text_fusion.layerwise_blocks."):
 		path = "blocks." + path[len("text_fusion.layerwise_blocks."):]
+	# Block-name mapping — dot variants + underscore variants
 	for old, new in [
 		("layers.", "blocks."), ("joint_blocks.", "blocks."),
 		("transformer_blocks.", "blocks."), ("double_blocks.", "blocks."),
 		("single_blocks.", "blocks."),
+		("single_transformer_blocks.", "blocks."),
+		("double_blocks_", "blocks."), ("single_blocks_", "blocks."),
+		("single_transformer_blocks_", "blocks."),
 	]:
 		if path.startswith(old):
 			path = new + path[len(old):]; break
+	# Convert underscores to dots now that block names are standardised
+	if stripped_prefix is not None:
+		path = path.replace("_", ".")
 	path = path.replace(".ff.", ".mlp.").replace(".feed_forward.", ".mlp.")
-	path = path.replace(".img_attn.", ".attn.").replace(".txt_attn.", ".attn.")
+	path = path.replace(".img.attn.", ".attn.").replace(".txt.attn.", ".attn.")
+	path = path.replace(".img.mlp.", ".img_mlp.").replace(".txt.mlp.", ".txt_mlp.")
 	path = path.replace(".attention.", ".attn.")
 	path = path.replace(".to_q", ".wq").replace(".to_k", ".wk")
 	path = path.replace(".to_v", ".wv").replace(".to_out.0", ".wo")
@@ -72,7 +84,6 @@ def _normalize_layer_path(path: str) -> str | None:
 	path = path.replace(".self_attn.k", ".attn.wk")
 	path = path.replace(".self_attn.v", ".attn.wv")
 	path = path.replace(".self_attn.o", ".attn.wo")
-	path = path.replace(".attn.out", ".attn.wo")
 	return path
 
 

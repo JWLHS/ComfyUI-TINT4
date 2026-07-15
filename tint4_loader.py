@@ -2,6 +2,7 @@
 tint4_loader.py — TINT4 Model Loader v1.0 + v1.1 bypass fix
 
 v1.1: load_model reads JS bypass signal + forces _tint4_reset_all_loras.
+v8.5: +model_type_key(), +9 native detect functions, dropdown display-name format.
 v8.4.0: +_build_tint4_lora_index (O(1) LoRA layer lookup),
 		+_tint4_quarot_enabled / _tint4_group_size global marks,
 		+_get_model_fingerprint for cache validation,
@@ -12,7 +13,7 @@ v8.3.1: _detach_cleanup now flushes cached _qt on all TINT4Linear
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import gc, os, json, hashlib
+import gc, os, json, hashlib, math
 import logging
 import folder_paths
 import comfy.sd
@@ -225,6 +226,8 @@ class TINT4Linear(nn.Module):
 		return out.reshape(*x.shape[:-1], out.shape[-1])
 
 
+# ── 已有自定义检测 ────────────────────────────────────────────────
+
 def _detect_krea2(sd: dict):
 	keys = list(sd.keys())
 	if "first.weight" not in sd:
@@ -300,6 +303,281 @@ def _detect_wan(sd: dict, key_prefix: str = ""):
 	return cfg
 
 
+# ── 新增自定义检测（v8.5）— 只用 _EXCLUSIONS 中的排除层 key ──────
+
+def _detect_sd3(sd: dict):
+	"""SD3 / SD3.5 MMDiT — 排除层: x_embedder, y_embedder, context_embedder, final_layer, pos_embed"""
+	x_key = "x_embedder.proj.weight"
+	if x_key not in sd:
+		return None
+	cfg = {}
+	cfg["image_model"] = "sd3"
+	cfg["in_channels"] = sd[x_key].shape[1]
+	cfg["patch_size"] = sd[x_key].shape[2]
+	cfg["depth"] = sd[x_key].shape[0] // 64
+	cfg["input_size"] = None
+	fl_key = "final_layer.linear.weight"
+	if fl_key in sd:
+		cfg["out_channels"] = sd[fl_key].shape[0] // (cfg["patch_size"] ** 2)
+	y_key = "y_embedder.mlp.0.weight"
+	if y_key in sd:
+		cfg["adm_in_channels"] = sd[y_key].shape[1]
+	ctx_key = "context_embedder.weight"
+	if ctx_key in sd:
+		cfg["context_embedder_config"] = {
+			"target": "torch.nn.Linear",
+			"params": {
+				"in_features": sd[ctx_key].shape[1],
+				"out_features": sd[ctx_key].shape[0],
+			},
+		}
+	pe_key = "pos_embed"
+	if pe_key in sd:
+		cfg["num_patches"] = sd[pe_key].shape[1]
+		cfg["pos_embed_max_size"] = round(math.sqrt(sd[pe_key].shape[1]))
+	cfg["pos_embed_scaling_factor"] = None
+	cfg["qk_norm"] = None
+	cfg["x_block_self_attn_layers"] = []
+	return cfg
+
+
+def _detect_flux(sd: dict):
+	"""Flux.1 MMDiT — 排除层: img_in, txt_in, time_in, vector_in, guidance_in, final_layer, img_mod.lin, txt_mod.lin, modulation.lin"""
+	img_key = "img_in.weight"
+	if img_key not in sd:
+		return None
+	cfg = {}
+	cfg["image_model"] = "flux"
+	cfg["hidden_size"] = sd[img_key].shape[0]
+	cfg["in_channels"] = sd[img_key].shape[1]
+	txt_key = "txt_in.weight"
+	if txt_key in sd:
+		cfg["context_in_dim"] = sd[txt_key].shape[1]
+	vec_key = "vector_in.in_layer.weight"
+	cfg["vec_in_dim"] = sd[vec_key].shape[1] if vec_key in sd else None
+	cfg["guidance_embed"] = "guidance_in.in_layer.weight" in sd
+	cfg["in_dim"] = cfg["in_channels"]
+	cfg["out_dim"] = cfg["hidden_size"]
+	cfg["axes_dim"] = [16, 24, 24]
+	cfg["theta"] = 10000.0
+	cfg["patch_size"] = 1
+	cfg["out_channels"] = cfg["hidden_size"]
+	cfg["num_heads"] = cfg["hidden_size"] // sum(cfg["axes_dim"])
+	cfg["depth"] = comfy.model_detection.count_blocks(
+		list(sd.keys()), "double_blocks." + "{}.")
+	cfg["depth_single_blocks"] = comfy.model_detection.count_blocks(
+		list(sd.keys()), "single_blocks." + "{}.")
+	cfg["guidance_embed"] = "guidance_in.in_layer.weight" in sd
+	cfg["yak_mlp"] = False
+	cfg["txt_ids_dims"] = [3]
+	return cfg
+
+
+def _detect_auraflow(sd: dict):
+	"""AuraFlow DiT — 排除层: positional_encoding, cond_seq_linear"""
+	pe_key = "positional_encoding"
+	cond_key = "cond_seq_linear.weight"
+	if pe_key not in sd or cond_key not in sd:
+		return None
+	cfg = {}
+	cfg["image_model"] = "auraflow"
+	cfg["max_seq"] = sd[pe_key].shape[1]
+	cfg["cond_seq_dim"] = sd[cond_key].shape[1]
+	keys = list(sd.keys())
+	cfg["n_double_layers"] = comfy.model_detection.count_blocks(
+		keys, "double_layers." + "{}.")
+	cfg["n_layers"] = (cfg["n_double_layers"]
+		+ comfy.model_detection.count_blocks(keys, "single_layers." + "{}."))
+	return cfg
+
+
+def _detect_cosmos(sd: dict):
+	"""Cosmos — 排除层: x_embedder, final_layer, adaln, t_embedder"""
+	x_key = "x_embedder.proj.1.weight"
+	if x_key not in sd:
+		return None
+	model_channels = sd[x_key].shape[0]
+	in_channels = (sd[x_key].shape[1] // 4) - 1
+
+	cfg = {
+		"image_model": "cosmos",
+		"model_channels": model_channels,
+		"max_img_h": 240, "max_img_w": 240, "max_frames": 128,
+		"in_channels": in_channels,
+		"out_channels": 16,
+		"patch_spatial": 2, "patch_temporal": 1,
+		"block_config": "FA-CA-MLP",
+		"concat_padding_mask": True,
+		"pos_emb_cls": "rope3d",
+		"pos_emb_learnable": False,
+		"pos_emb_interpolation": "crop",
+		"block_x_format": "THWBD",
+		"affline_emb_norm": True,
+		"use_adaln_lora": True, "adaln_lora_dim": 256,
+	}
+
+	if model_channels == 4096:
+		cfg["num_blocks"] = 28
+		cfg["num_heads"] = 32
+		cfg["extra_per_block_abs_pos_emb"] = True
+		cfg["rope_h_extrapolation_ratio"] = 1.0
+		cfg["rope_w_extrapolation_ratio"] = 1.0
+		cfg["rope_t_extrapolation_ratio"] = 2.0
+		cfg["extra_per_block_abs_pos_emb_type"] = "learnable"
+	else:
+		cfg["num_blocks"] = 36
+		cfg["num_heads"] = 40
+		cfg["extra_per_block_abs_pos_emb"] = True
+		cfg["rope_h_extrapolation_ratio"] = 2.0
+		cfg["rope_w_extrapolation_ratio"] = 2.0
+		cfg["rope_t_extrapolation_ratio"] = 2.0
+		cfg["extra_h_extrapolation_ratio"] = 2.0
+		cfg["extra_w_extrapolation_ratio"] = 2.0
+		cfg["extra_t_extrapolation_ratio"] = 2.0
+		cfg["extra_per_block_abs_pos_emb_type"] = "learnable"
+
+	log.info(f"[TINT4] cosmos detected: model_channels={model_channels}, "
+			 f"in_channels={in_channels}, num_blocks={cfg['num_blocks']}")
+	return cfg
+
+
+def _detect_cogvideox(sd: dict):
+	"""CogVideoX DiT — 排除层: patch_embed, proj_out, ofs_embedding"""
+	pe_key = "patch_embed.proj.weight"
+	if pe_key not in sd:
+		return None
+	cfg = {}
+	cfg["image_model"] = "cogvideox"
+	po_key = "proj_out.weight"
+	if po_key in sd:
+		cfg["out_channels"] = sd[po_key].shape[0] // 4
+	ofs_key = "ofs_embedding_linear_1.weight"
+	if ofs_key in sd:
+		cfg["ofs_embed_dim"] = sd[ofs_key].shape[1]
+	return cfg
+
+
+def _detect_lens(sd: dict):
+	"""Lens DiT — 排除层: img_in, proj_out, txt_norm"""
+	img_key = "img_in.weight"
+	if img_key not in sd:
+		return None
+	proj_key = "proj_out.weight"
+	if proj_key not in sd:
+		return None
+	cfg = {}
+	cfg["image_model"] = "lens"
+	cfg["in_channels"] = sd[img_key].shape[1]
+	cfg["out_channels"] = sd[proj_key].shape[0] // 4
+	cfg["num_layers"] = comfy.model_detection.count_blocks(
+		list(sd.keys()), "transformer_blocks." + "{}.")
+	cfg["num_attention_heads"] = sd[img_key].shape[0] // 64
+	multi_layer = "txt_norm.0.weight" in sd
+	if multi_layer:
+		cfg["enc_hidden_dim"] = sd["txt_norm.0.weight"].shape[0]
+		cfg["selected_layer_index"] = tuple(range(
+			comfy.model_detection.count_blocks(list(sd.keys()), "txt_norm." + "{}.")))
+	else:
+		cfg["enc_hidden_dim"] = sd["txt_norm.weight"].shape[0]
+		cfg["selected_layer_index"] = (0,)
+	cfg["multi_layer_encoder_feature"] = multi_layer
+	return cfg
+
+
+def _detect_kandinsky5(sd: dict):
+	"""Kandinsky 5 — 排除层: visual_embeddings, time_embeddings"""
+	ve_key = "visual_embeddings.in_layer.bias"
+	if ve_key not in sd:
+		return None
+	model_dim = sd[ve_key].shape[0]
+	cfg = {}
+	cfg["image_model"] = "kandinsky5"
+	cfg["model_dim"] = model_dim
+	if model_dim in [4096, 2560]:
+		cfg["axes_dims"] = (32, 48, 48)
+	elif model_dim == 1792:
+		cfg["axes_dims"] = (16, 24, 24)
+	te_key = "time_embeddings.in_layer.bias"
+	cfg["time_dim"] = sd[te_key].shape[0] if te_key in sd else 0
+	cfg["num_text_blocks"] = comfy.model_detection.count_blocks(
+		list(sd.keys()), "text_transformer_blocks." + "{}.")
+	cfg["num_visual_blocks"] = comfy.model_detection.count_blocks(
+		list(sd.keys()), "visual_transformer_blocks." + "{}.")
+	return cfg
+
+
+def _detect_seedvr2(sd: dict):
+	"""SeedVR 2 — 排除层: x_embedder, final_layer"""
+	x_key = "x_embedder.weight"
+	if x_key not in sd:
+		return None
+	cfg = {}
+	cfg["image_model"] = "seedvr2"
+	fl_key = "final_layer.linear.weight"
+	if fl_key in sd:
+		cfg["out_channels"] = sd[fl_key].shape[0] // 4
+	return cfg
+
+
+def _detect_anima(sd: dict):
+	"""Anima — 排除层: adaln, x_embedder"""
+	x_key = "x_embedder.proj.1.weight"
+	if x_key not in sd:
+		return None
+	model_channels = sd[x_key].shape[0]
+	in_channels = (sd[x_key].shape[1] // 4) - 1
+
+	if model_channels == 2048:
+		num_blocks, num_heads = 28, 16
+	elif model_channels == 5120:
+		num_blocks, num_heads = 36, 40
+	else:
+		return None
+
+	cfg = {
+		"image_model": "anima",
+		"model_channels": model_channels,
+		"num_blocks": num_blocks,
+		"num_heads": num_heads,
+		"max_img_h": 240, "max_img_w": 240, "max_frames": 128,
+		"in_channels": in_channels,
+		"out_channels": 16,
+		"patch_spatial": 2, "patch_temporal": 1,
+		"crossattn_emb_channels": 1024,
+		"pos_emb_cls": "rope3d",
+		"pos_emb_learnable": True,
+		"pos_emb_interpolation": "crop",
+		"min_fps": 1, "max_fps": 30,
+		"use_adaln_lora": True, "adaln_lora_dim": 256,
+		"concat_padding_mask": True,
+	}
+
+	if in_channels == 16:
+		cfg["extra_per_block_abs_pos_emb"] = False
+		cfg["rope_h_extrapolation_ratio"] = 4.0
+		cfg["rope_w_extrapolation_ratio"] = 4.0
+		cfg["rope_t_extrapolation_ratio"] = 1.0
+	elif in_channels == 17:
+		if model_channels == 2048:
+			cfg["extra_per_block_abs_pos_emb"] = False
+			cfg["rope_h_extrapolation_ratio"] = 3.0
+			cfg["rope_w_extrapolation_ratio"] = 3.0
+			cfg["rope_t_extrapolation_ratio"] = 1.0
+		elif model_channels == 5120:
+			cfg["rope_h_extrapolation_ratio"] = 2.0
+			cfg["rope_w_extrapolation_ratio"] = 2.0
+			cfg["rope_t_extrapolation_ratio"] = 0.8333333333333334
+
+	cfg["extra_h_extrapolation_ratio"] = 1.0
+	cfg["extra_w_extrapolation_ratio"] = 1.0
+	cfg["extra_t_extrapolation_ratio"] = 1.0
+	cfg["rope_enable_fps_modulation"] = False
+
+	log.info(f"[TINT4] anima detected: model_channels={model_channels}, "
+			 f"in_channels={in_channels}, num_blocks={num_blocks}")
+	return cfg
+
+
 def _detect_fallback(sd, key_prefix, metadata=None, *, model_type=None):
 	if model_type == "krea2":
 		cfg = _detect_krea2(sd)
@@ -313,6 +591,44 @@ def _detect_fallback(sd, key_prefix, metadata=None, *, model_type=None):
 		cfg = _detect_wan(sd, key_prefix)
 		if cfg is not None:
 			return cfg
+	# v8.5 — 9 个新增自定义检测（检测入口在量化层，但排除层可获取参数）
+	if model_type == "sd3":
+		cfg = _detect_sd3(sd)
+		if cfg is not None:
+			return cfg
+	if model_type == "flux":
+		cfg = _detect_flux(sd)
+		if cfg is not None:
+			return cfg
+	if model_type == "auraflow":
+		cfg = _detect_auraflow(sd)
+		if cfg is not None:
+			return cfg
+	if model_type == "cosmos":
+		cfg = _detect_cosmos(sd)
+		if cfg is not None:
+			return cfg
+	if model_type == "cogvideox":
+		cfg = _detect_cogvideox(sd)
+		if cfg is not None:
+			return cfg
+	if model_type == "lens":
+		cfg = _detect_lens(sd)
+		if cfg is not None:
+			return cfg
+	if model_type == "kandinsky5":
+		cfg = _detect_kandinsky5(sd)
+		if cfg is not None:
+			return cfg
+	if model_type == "seedvr2":
+		cfg = _detect_seedvr2(sd)
+		if cfg is not None:
+			return cfg
+	if model_type == "anima":
+		cfg = _detect_anima(sd)
+		if cfg is not None:
+			return cfg
+	# 其余模型（检测入口在排除层中）走 _orig_detect 正常工作
 	return _orig_detect(sd, key_prefix, metadata)
 
 
@@ -331,7 +647,7 @@ class TINT4ModelLoader:
 				),
 				"model_type": (
 					MODEL_TYPES,
-					{"default": "flux2",
+					{"default": "flux2 (Flux.2)",
 					 "tooltip": "Must match quantization type"},
 				),
 			},
@@ -342,7 +658,9 @@ class TINT4ModelLoader:
 	FUNCTION = "load_model"
 
 	def load_model(self, unet_name, model_type):
-		# v1.1: read JS bypass signal (dual channel: HTTP + graphToPrompt)
+		from .tint4_quantizer import model_type_key
+		model_type = model_type_key(model_type)
+
 		from .tint4_lora_common import _read_clear_signal, _tint4_reset_all_loras
 		force_reset = _read_clear_signal()
 		if force_reset:
@@ -499,7 +817,9 @@ class TINT4ModelLoader:
 						if parent_name else child_name)
 				for c in [f"diffusion_model.{full}",
 						  f"model.diffusion_model.{full}",
-						  f"model.{full}", full]:
+						  f"model.{full}", 
+						  f"net.{full}", 
+						  full]:
 					if c in quant_map:
 						replacements.append((parent_mod, child_name, c))
 						break
@@ -567,8 +887,6 @@ class TINT4ModelLoader:
 		from .tint4_aimdo import patch_model_for_aimdo
 		patch_model_for_aimdo(model)
 
-		# v1.1: guaranteed LoRA cleanup after model load
-		# Handles: bypass residue, middle-node interference, stale model refs
 		_tint4_reset_all_loras(model)
 		if force_reset:
 			log.info("[TINT4] ✓ LoRA state force-cleared after model load")
