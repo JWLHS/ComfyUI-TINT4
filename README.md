@@ -321,6 +321,19 @@ python analyse_quant.py 模型路径.safetensors 模型类型
 
 ---
 
+## TINT4 量化效果
+### 测试在LOW VRAM条件下进行，使用显卡为intel-Arc-A770-16G (非严谨测试，仅做展示用途)
+## 展示项目——| 模型 | 显存占用 | 运行时间 |
+
+
+| Krea2 Turbo | ![Krea2](./assets/KREA2-TURBO-1.png) | ![Krea2](./assets/KREA2-TURBO-2.png) |
+| Flux.2 Klein 9B | ![F2K](./assets/F2K-9B-TURBO-1.png) | ![F2K](./assets/F2K-9B-TURBO-2.png) |
+| Z-Image Turbo | ![ZImage](./assets/ZIMAGE-TURBO-1.png) | ![ZImage](./assets/ZIMAGE-TURBO-2.png) |
+| Qwen-Image 2511 | ![Qwen](./assets/QWEN-EDIT-2511-1.png) | ![Qwen](./assets/QWEN-EDIT-2511-2.png) |
+| Boogu Turbo | ![Boogu](./assets/BOOGU-TURBO-1.png) | ![Boogu](./assets/BOOGU-TURBO-2.png) |
+
+> 测试环境：Intel Arc A770 16GB (XPU)，torchao INT4 W4A16
+
 ## 贡献
 
 ---
