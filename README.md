@@ -27,35 +27,31 @@
      NVIDIA/CUDA 用户: pip install torchao>=0.17.0
      AMD/ROCm 用户: pip install torchao>=0.17.0 --index-url https://download.pytorch.org/whl/rocm6.4
 
-  3. Intel XPU 用户安装 torchao 后，双击插件目录下的 fix_torchao_xpu.bat 补全缺失子模块
+  3. Intel XPU 用户安装 torchao 后，双击插件目录下的 fix_torchao_xpu.bat
+     （移除不兼容的 MPS 模块，避免 diffusers 扫描崩溃）
 
   4. 重启 ComfyUI
 ```
 
 ---
 
-## torchao XPU fork 缺少模块的解决方案
+## torchao XPU fork 修复说明
 
-Intel 的 `torchao 0.17.0+xpu` 缺少标准 torchao 的部分子模块，导致 diffusers / transformers 在启动时崩溃（报错 `ModuleNotFoundError`）。
+`torchao 0.17.0+xpu` 的 `experimental/ops/mps/` 模块在导入时抛出 `RuntimeError`
+（macOS 专用的 `.dylib` 文件在 Windows 上不存在），而 `RuntimeError` 不是 `ImportError`
+的子类，导致 `pkgutil.walk_packages()` 等模块发现工具（被 diffusers / transformers
+等库使用）在扫描 torchao 子包时崩溃。
 
 **自动修复**（推荐）：双击插件目录下的 `fix_torchao_xpu.bat`，或手动运行：
 
-```bash
+\`\`\`bash
 python fix_torchao_xpu.py
-```
+\`\`\`
 
-脚本会自动检测 torchao 安装路径并补全所有缺失文件。仅对 +xpu 版本生效，标准 torchao 自动跳过。
+脚本会自动检测 torchao 安装路径并移除 MPS 目录。仅对 +xpu 版本生效，标准 torchao 自动跳过。
 
-**手动修复**：如果脚本无法运行，在 ComfyUI 的 `site-packages/torchao/` 下创建以下空文件：
+本问题已向 torchao 上游提交 bug 报告，后续版本也许能从根源解决。
 
-```
-dtypes/floatx/__init__.py
-dtypes/floatx/float8_layout.py      # 内容: Float8AQTTensorImpl = None
-dtypes/uintx/__init__.py
-dtypes/uintx/uint4_layout.py        # 内容: UInt4Tensor = None
-dtypes/uintx/plain_layout.py
-quantization/linear_quant.py
-```
 
 ---
 

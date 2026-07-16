@@ -28,35 +28,32 @@ Built on [torchao](https://github.com/pytorch/ao).  Supports Intel XPU / NVIDIA 
      AMD/ROCm:    pip install torchao>=0.17.0 --index-url https://download.pytorch.org/whl/rocm6.4
 
   3. Intel XPU users: after installing torchao, double‑click fix_torchao_xpu.bat
-     (included in the plugin directory) to patch missing sub‑modules
+     (included in the plugin directory) to remove the incompatible MPS module
 
   4. Restart ComfyUI
 ```
 
 ---
 
-## torchao XPU Fork — Missing Sub‑modules Fix
+## torchao XPU Fork Fix
 
-Intel's `torchao 0.17.0+xpu` omits several standard torchao sub‑modules, causing diffusers / transformers to crash on startup (`ModuleNotFoundError`).
+`torchao 0.17.0+xpu` ships an `experimental/ops/mps/` module that raises `RuntimeError`
+at import time (the macOS `.dylib` does not exist on Windows). Since `RuntimeError` is
+not a subclass of `ImportError`, it escapes `pkgutil.walk_packages()` error handling,
+crashing module discovery in diffusers / transformers and similar libraries.
 
-**Auto‑fix (recommended)**: double‑click `fix_torchao_xpu.bat` in the plugin directory, or run:
+**Auto‑fix (recommended)**: double‑click `fix_torchao_xpu.bat` in the plugin directory,
+or run:
 
-```bash
+\`\`\`bash
 python fix_torchao_xpu.py
-```
+\`\`\`
 
-The script auto‑detects the torchao install path and creates all missing files.  Only affects `+xpu` builds; standard torchao is skipped.
+The script auto‑detects the torchao install path and removes the MPS module.
+Only affects `+xpu` builds; standard torchao is skipped.
 
-**Manual fix**: if the script cannot run, create the following empty files under ComfyUI's `site-packages/torchao/`:
+This issue has been reported upstream to torchao for a permanent fix.
 
-```
-dtypes/floatx/__init__.py
-dtypes/floatx/float8_layout.py      # content: Float8AQTTensorImpl = None
-dtypes/uintx/__init__.py
-dtypes/uintx/uint4_layout.py        # content: UInt4Tensor = None
-dtypes/uintx/plain_layout.py
-quantization/linear_quant.py
-```
 
 ---
 
