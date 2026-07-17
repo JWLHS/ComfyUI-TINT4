@@ -21,14 +21,15 @@
      ComfyUI Manager 搜 "TINT4" 安装
      或 git clone 到 custom_nodes/ComfyUI-TINT4
 
-  2. 安装 torchao
+  2. 启动comfyui时自动识别设备安装对应版本。
+  
+     如需手动安装 torchao 根据设备执行以下命令
      pip install torchao>=0.17.0
      Intel XPU 用户: pip install torchao --index-url https://download.pytorch.org/whl/xpu
      NVIDIA/CUDA 用户: pip install torchao>=0.17.0
      AMD/ROCm 用户: pip install torchao>=0.17.0 --index-url https://download.pytorch.org/whl/rocm6.4
 
-  3. Intel XPU 用户安装 torchao 后，双击插件目录下的 fix_torchao_xpu.bat
-     （移除不兼容的 MPS 模块，避免 diffusers 扫描崩溃）
+  3. Intel XPU 用户安装 torchao xpu后，请手动删除torchao目录总的mps模块。
 
   4. 重启 ComfyUI
 ```

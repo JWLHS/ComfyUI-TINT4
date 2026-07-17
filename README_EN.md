@@ -15,39 +15,35 @@ Built on [torchao](https://github.com/pytorch/ao).  Supports Intel XPU / NVIDIA 
 ---
 
 ## Installation
+Install the plugin
+git clone into custom_nodes/ComfyUI-TINT4
 
-```
-  1. Install the plugin
-     ComfyUI Manager → search "TINT4"
-     or git clone into custom_nodes/ComfyUI-TINT4
+torchao is installed automatically on ComfyUI startup
+(detects your device and installs the correct build).
 
-  2. Install torchao
-     pip install torchao>=0.17.0
-     Intel XPU:   pip install torchao --index-url https://download.pytorch.org/whl/xpu
-     NVIDIA/CUDA: pip install torchao>=0.17.0
-     AMD/ROCm:    pip install torchao>=0.17.0 --index-url https://download.pytorch.org/whl/rocm6.4
+For manual install, run the platform‑specific command:
+pip install torchao>=0.17.0
+Intel XPU: pip install torchao --index-url https://download.pytorch.org/whl/xpu
+NVIDIA/CUDA: pip install torchao>=0.17.0
+AMD/ROCm: pip install torchao>=0.17.0 --index-url https://download.pytorch.org/whl/rocm6.4
 
-  3. Intel XPU users: after installing torchao, double‑click fix_torchao_xpu.bat
-     (included in the plugin directory) to remove the incompatible MPS module
+Intel XPU users: after installing torchao xpu,
+manually delete the mps module in the torchao directory.
 
-  4. Restart ComfyUI
-```
+Restart ComfyUI
 
----
-
+torchao XPU Fork Fix
+MARKDOWN
 ## torchao XPU Fork Fix
-
 `torchao 0.17.0+xpu` ships an `experimental/ops/mps/` module that raises `RuntimeError`
 at import time (the macOS `.dylib` does not exist on Windows). Since `RuntimeError` is
 not a subclass of `ImportError`, it escapes `pkgutil.walk_packages()` error handling,
 crashing module discovery in diffusers / transformers and similar libraries.
-
-**Auto‑fix (recommended)**: double‑click `fix_torchao_xpu.bat` in the plugin directory,
-or run:
-
-\`\`\`bash
-python fix_torchao_xpu.py
-\`\`\`
+**Auto‑fix**: TINT4 automatically removes the MPS module on XPU startup.
+To verify the fix manually, run:
+```bash
+python custom_nodes/ComfyUI-TINT4/install.py --no-install
+This issue has been reported upstream to torchao for a permanent fix.
 
 The script auto‑detects the torchao install path and removes the MPS module.
 Only affects `+xpu` builds; standard torchao is skipped.
