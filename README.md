@@ -43,13 +43,7 @@
 的子类，导致 `pkgutil.walk_packages()` 等模块发现工具（被 diffusers / transformers
 等库使用）在扫描 torchao 子包时崩溃。
 
-**自动修复**（推荐）：双击插件目录下的 `fix_torchao_xpu.bat`，或手动运行：
-
-\`\`\`bash
-python fix_torchao_xpu.py
-\`\`\`
-
-脚本会自动检测 torchao 安装路径并移除 MPS 目录。仅对 +xpu 版本生效，标准 torchao 自动跳过。
+当前版本启动comfyui时插件会自动运行插件执行安装与修复。
 
 本问题已向 torchao 上游提交 bug 报告，后续版本也许能从根源解决。
 
