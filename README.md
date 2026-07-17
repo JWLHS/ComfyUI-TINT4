@@ -29,7 +29,7 @@
      NVIDIA/CUDA 用户: pip install torchao>=0.17.0
      AMD/ROCm 用户: pip install torchao>=0.17.0 --index-url https://download.pytorch.org/whl/rocm6.4
 
-  3. Intel XPU 用户安装 torchao xpu后，请手动删除torchao目录总的mps模块。
+  3. Intel XPU 用户安装 torchao xpu后，请手动删除torchao目录内的mps模块。
 
   4. 重启 ComfyUI
 ```
