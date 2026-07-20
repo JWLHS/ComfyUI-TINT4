@@ -1,0 +1,611 @@
+{
+  "id": "79b2facb-7a1a-49f7-9a00-b3891d875081",
+  "revision": 0,
+  "last_node_id": 67,
+  "last_link_id": 137,
+  "nodes": [
+    {
+      "id": 46,
+      "type": "CLIPTextEncode",
+      "pos": [
+        760,
+        5860
+      ],
+      "size": [
+        500,
+        260
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 4,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.25.0",
+        "Node name for S&R": "CLIPTextEncode",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "一幅极致精细的东方奢华青绿山水装饰画，竖构图，融合中国传统青绿山水、金箔漆画、珐琅浮雕、矿物颜料壁画与高端东方屏风艺术。画面呈现日出或夕阳时分的仙境山水：远方一轮金色太阳贴近地平线，暖金色光芒穿过云层与薄雾，倒映在蜿蜒的河流与湖面上，形成一条从远景延伸到前景的发光金色水路。\n\n前景左下有一座精致中式亭台，红柱、金边、深蓝黑瓦顶，亭子坐落在青绿色山石与古松之间；画面右下还有一座较小的亭子，与主亭形成呼应。山体层层叠叠，使用孔雀石绿、石青蓝、靛蓝、墨黑、灰白与朱砂红矿物色堆叠，山脉边缘以不规则金箔线勾勒，像镶嵌在漆面上的金属纹理。山石有半透明玉石般的质感，局部像珐琅和琉璃，蓝绿色山体内部有深浅渐变和晶体光泽。\n\n整幅画面充满流动的云雾，白色雾气从山间、水面和亭台周围升起，形成柔软的层次。金色线条沿着云雾、水流、山脊、太阳光和远方云纹自然流动，像熔化的金箔嵌入画面，局部有真实金属反光。河面和水道上布满碎金般的反射，高光呈现厚重金箔质感，闪烁但不刺眼。松树以传统水墨笔触绘制，黑色枝干、青黑松针，部分边缘带金色描线。\n\n背景是温润的古旧宣纸、丝绢或羊皮纸底色，带轻微泛黄、茶色水痕、矿物颜料渗化痕迹。整体画面既有传统工笔山水的精密结构，又有现代奢华装饰艺术的材质表现。细节极多，亭台栏杆、瓦片、松枝、山体纹理、水面金光、云雾边缘都精细可见。画面气质宏大、华丽、神秘、东方仙境感，高级收藏级艺术品，像一幅金箔珐琅青绿山水屏风。\n\n超精细，高分辨率，极致细节，金箔反光，矿物颜料，青绿山水，东方仙境，奢华屏风，珐琅浮雕，漆画质感，玉石质感，厚涂与工笔结合，层次丰富，空间纵深强，S形河流构图，云雾缭绕，日出金光，亭台楼阁，古松，远山，水面倒影，收藏级东方艺术。"
+      ],
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 11,
+      "type": "CLIPTextEncode",
+      "pos": [
+        1380,
+        4700
+      ],
+      "size": [
+        500,
+        260
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 11
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            95,
+            96
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.25.0",
+        "Node name for S&R": "CLIPTextEncode",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "一幅极致精细的东方奢华青绿山水装饰画，竖构图，融合中国传统青绿山水、金箔漆画、珐琅浮雕、矿物颜料壁画与高端东方屏风艺术。画面呈现日出或夕阳时分的仙境山水：远方一轮金色太阳贴近地平线，暖金色光芒穿过云层与薄雾，倒映在蜿蜒的河流与湖面上，形成一条从远景延伸到前景的发光金色水路。\n\n前景左下有一座精致中式亭台，红柱、金边、深蓝黑瓦顶，亭子坐落在青绿色山石与古松之间；画面右下还有一座较小的亭子，与主亭形成呼应。山体层层叠叠，使用孔雀石绿、石青蓝、靛蓝、墨黑、灰白与朱砂红矿物色堆叠，山脉边缘以不规则金箔线勾勒，像镶嵌在漆面上的金属纹理。山石有半透明玉石般的质感，局部像珐琅和琉璃，蓝绿色山体内部有深浅渐变和晶体光泽。\n\n整幅画面充满流动的云雾，白色雾气从山间、水面和亭台周围升起，形成柔软的层次。金色线条沿着云雾、水流、山脊、太阳光和远方云纹自然流动，像熔化的金箔嵌入画面，局部有真实金属反光。河面和水道上布满碎金般的反射，高光呈现厚重金箔质感，闪烁但不刺眼。松树以传统水墨笔触绘制，黑色枝干、青黑松针，部分边缘带金色描线。\n\n背景是温润的古旧宣纸、丝绢或羊皮纸底色，带轻微泛黄、茶色水痕、矿物颜料渗化痕迹。整体画面既有传统工笔山水的精密结构，又有现代奢华装饰艺术的材质表现。细节极多，亭台栏杆、瓦片、松枝、山体纹理、水面金光、云雾边缘都精细可见。画面气质宏大、华丽、神秘、东方仙境感，高级收藏级艺术品，像一幅金箔珐琅青绿山水屏风。\n\n超精细，高分辨率，极致细节，金箔反光，矿物颜料，青绿山水，东方仙境，奢华屏风，珐琅浮雕，漆画质感，玉石质感，厚涂与工笔结合，层次丰富，空间纵深强，S形河流构图，云雾缭绕，日出金光，亭台楼阁，古松，远山，水面倒影，收藏级东方艺术。"
+      ],
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 9,
+      "type": "ConditioningZeroOut",
+      "pos": [
+        1920,
+        4820
+      ],
+      "size": [
+        220,
+        40
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 95
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            135
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.25.0",
+        "Node name for S&R": "ConditioningZeroOut",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [],
+      "color": "#322",
+      "bgcolor": "#533"
+    },
+    {
+      "id": 32,
+      "type": "KSampler",
+      "pos": [
+        2220,
+        4640
+      ],
+      "size": [
+        500,
+        720
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 136
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 96
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 135
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 66
+        },
+        {
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": 104
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            67
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.25.0",
+        "Node name for S&R": "KSampler",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        978371679353333,
+        "randomize",
+        6,
+        1,
+        "euler",
+        "simple",
+        1
+      ]
+    },
+    {
+      "id": 66,
+      "type": "TINT4ModelLoader",
+      "pos": [
+        1000,
+        4680
+      ],
+      "size": [
+        270,
+        82
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            136
+          ]
+        }
+      ],
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {}
+        },
+        "aux_id": "JWLHS/ComfyUI-TINT4",
+        "ver": "a4bad0a1696d3063e98941fe4e8612adb97e536e",
+        "Node name for S&R": "TINT4ModelLoader"
+      },
+      "widgets_values": [
+        "tint4\\boogu\\booguturbo_tint4.safetensors",
+        "boogu (Boogu)"
+      ]
+    },
+    {
+      "id": 8,
+      "type": "EmptyLatentImage",
+      "pos": [
+        1380,
+        5000
+      ],
+      "size": [
+        280,
+        120
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            66
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.25.0",
+        "Node name for S&R": "EmptyLatentImage",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        720,
+        1280,
+        1
+      ]
+    },
+    {
+      "id": 56,
+      "type": "Seed (rgthree)",
+      "pos": [
+        1380,
+        5180
+      ],
+      "size": [
+        320,
+        140
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "dir": 4,
+          "name": "随机种",
+          "shape": 3,
+          "type": "INT",
+          "links": [
+            104
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "rgthree-comfy",
+        "ver": "27b4f4cdcf3b127c29d5d8135ac1536ecbd4c383",
+        "randomMax": 1125899906842624,
+        "randomMin": 0,
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.8"
+        }
+      },
+      "widgets_values": [
+        -1,
+        "",
+        "",
+        "okay"
+      ]
+    },
+    {
+      "id": 7,
+      "type": "CLIPLoader",
+      "pos": [
+        1000,
+        4800
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            11
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.25.0",
+        "Node name for S&R": "CLIPLoader",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "qwen\\qwen3vl_8b_fp8_scaled.safetensors",
+        "boogu",
+        "default"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 5,
+      "type": "VAELoader",
+      "pos": [
+        2420,
+        4520
+      ],
+      "size": [
+        280,
+        60
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            76
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.25.0",
+        "Node name for S&R": "VAELoader",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "flux\\flux1_vae_bf16.safetensors"
+      ],
+      "color": "#322",
+      "bgcolor": "#533"
+    },
+    {
+      "id": 3,
+      "type": "VAEDecode",
+      "pos": [
+        2780,
+        4680
+      ],
+      "size": [
+        140,
+        60
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 67
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 76
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            137
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.25.0",
+        "Node name for S&R": "VAEDecode",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 67,
+      "type": "SaveImage",
+      "pos": [
+        2960,
+        4680
+      ],
+      "size": [
+        270,
+        58
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 137
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {}
+        },
+        "cnr_id": "comfy-core",
+        "ver": "0.28.0",
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "BOOGU/0000"
+      ]
+    }
+  ],
+  "links": [
+    [
+      11,
+      7,
+      0,
+      11,
+      0,
+      "CLIP"
+    ],
+    [
+      66,
+      8,
+      0,
+      32,
+      3,
+      "LATENT"
+    ],
+    [
+      67,
+      32,
+      0,
+      3,
+      0,
+      "LATENT"
+    ],
+    [
+      76,
+      5,
+      0,
+      3,
+      1,
+      "VAE"
+    ],
+    [
+      95,
+      11,
+      0,
+      9,
+      0,
+      "CONDITIONING"
+    ],
+    [
+      96,
+      11,
+      0,
+      32,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      104,
+      56,
+      0,
+      32,
+      4,
+      "INT"
+    ],
+    [
+      135,
+      9,
+      0,
+      32,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      136,
+      66,
+      0,
+      32,
+      0,
+      "MODEL"
+    ],
+    [
+      137,
+      3,
+      0,
+      67,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.730226680776774,
+      "offset": [
+        -389.6218662314386,
+        -3893.1946037194766
+      ]
+    },
+    "frontendVersion": "1.45.21",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true,
+    "ue_links": [],
+    "links_added_by_ue": []
+  },
+  "version": 0.4
+}

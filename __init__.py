@@ -41,10 +41,10 @@ if _ensure_torchao():
     from .tint4_loader import NODE_CLASS_MAPPINGS as _LM, NODE_DISPLAY_NAME_MAPPINGS as _LD
     from .tint4_lora_loader import NODE_CLASS_MAPPINGS as _LRM, NODE_DISPLAY_NAME_MAPPINGS as _LRD
     from .tint4_lora_stack import NODE_CLASS_MAPPINGS as _LSM, NODE_DISPLAY_NAME_MAPPINGS as _LSD
-    from .tint4_loader_video import NODE_CLASS_MAPPINGS as _VLM, NODE_DISPLAY_NAME_MAPPINGS as _VLD
-    from .tint4_chunk import NODE_CLASS_MAPPINGS as _CM, NODE_DISPLAY_NAME_MAPPINGS as _CD
-    NODE_CLASS_MAPPINGS = {**_QM, **_LM, **_LRM, **_LSM, **_VLM, **_CM}
-    NODE_DISPLAY_NAME_MAPPINGS = {**_QD, **_LD, **_LRD, **_LSD, **_VLD, **_CD}
+    from .tint4_loader_ltx import NODE_CLASS_MAPPINGS as _LLM, NODE_DISPLAY_NAME_MAPPINGS as _LLD
+    from .tint4_loader_wan import NODE_CLASS_MAPPINGS as _LWM, NODE_DISPLAY_NAME_MAPPINGS as _LWD
+    NODE_CLASS_MAPPINGS = {**_QM, **_LM, **_LRM, **_LSM, **_LLM, **_LWM}
+    NODE_DISPLAY_NAME_MAPPINGS = {**_QD, **_LD, **_LRD, **_LSD, **_LLD, **_LWD}
 else:
     NODE_CLASS_MAPPINGS = {}
     NODE_DISPLAY_NAME_MAPPINGS = {}
