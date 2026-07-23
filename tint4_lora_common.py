@@ -75,6 +75,8 @@ def _normalize_layer_path(path: str) -> str | None:
 	path = path.replace(".img.attn.", ".attn.").replace(".txt.attn.", ".attn.")
 	path = path.replace(".img.mlp.", ".img_mlp.").replace(".txt.mlp.", ".txt_mlp.")
 	path = path.replace(".attention.", ".attn.")
+	path = path.replace(".attn.to_qkv_mlp_proj", ".linear1")
+	path = path.replace(".attn.to_out", ".linear2")
 	path = path.replace(".to_q", ".wq").replace(".to_k", ".wk")
 	path = path.replace(".to_v", ".wv").replace(".to_out.0", ".wo")
 	path = path.replace(".to_out", ".wo").replace(".to_gate", ".gate")
