@@ -639,6 +639,10 @@ def _detect_fallback(sd, key_prefix, metadata=None, *, model_type=None):
 		cfg = _detect_anima(sd)
 		if cfg is not None:
 			return cfg
+	if model_type == "minimax_h3":
+		# MiniMax H3：ComfyUI 原生检测（video_patch_proj + audio_patch_proj），
+		# 排除列表与 comfy-kitchen INT4_CONVROT 保持一致，检测逻辑复用官方实现
+		return _orig_detect(sd, key_prefix, metadata)
 	# 其余模型（检测入口在排除层中）走 _orig_detect 正常工作
 	return _orig_detect(sd, key_prefix, metadata)
 

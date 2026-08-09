@@ -139,6 +139,13 @@ _EXCLUSIONS = {
 		# Hunyuan3D 2.x: MMDiT, latent/cond 替代 img/txt
 		"latent_in", "cond_in", "final_layer", "guidance_in",
 	],
+	"minimax_h3": [
+		# MiniMax H3（与 comfy-kitchen INT4_CONVROT 同一排除策略）:
+		# patch 输入/输出、adaLN、norm、rope、token_refiner 保持原精度
+		"bias", "norm", "adaln_proj", "adaln_t_table",
+		"condition_proj", "final_layer", "token_refiner",
+		"patch_proj", "rope",
+	],
 
 	# ── 新增：DiT 架构 ─────────────────────────────────────────────
 	"auraflow": [
@@ -204,6 +211,7 @@ MODEL_TYPES = [
 	"sd3 (SD3 / SD3.5)",
 	"hunyuan_video (Hunyuan Video)",
 	"hunyuan3d (Hunyuan3D 2.x)",
+	"minimax_h3 (MiniMax H3)",
 	# ── DiT ──
 	"pixart (PixArt Alpha / Sigma)",
 	"hydit (Hunyuan DiT)",
@@ -309,6 +317,11 @@ class TINT4ModelQuantizer:
 				"output_filename": ("STRING", {
 					"default": "model_tint4",
 				}),
+				"stream_mode": ("BOOLEAN", {
+					"default": False,
+					"tooltip": "低内存流式量化：逐张量读取不保留整份 fp16，"
+					           "≥19GB 原版在 32GB 内存机器上建议开启",
+				}),
 			},
 		}
 
@@ -319,7 +332,7 @@ class TINT4ModelQuantizer:
 		"Quantize diffusion model to torchao INT4 (v8.1: +16 native DiT types)")
 
 	def quantize(self, model_name, model_type, enable_quarot, group_size,
-				 device, output_filename):
+				 device, output_filename, stream_mode=False):
 		# ── 显示名 → 内部 key ─────────────────────────────────────
 		model_type = model_type_key(model_type)
 
@@ -340,6 +353,11 @@ class TINT4ModelQuantizer:
 		log.info(
 			f"[TINT4] device={dev}  gs={group_size}"
 			f"  quarot={enable_quarot}")
+
+		if stream_mode:
+			return self._quantize_stream(
+				src_path, dst_path, model_type, actual_gs,
+				enable_quarot, dev)
 
 		sd = comfy.utils.load_torch_file(src_path, safe_load=True)
 		log.info(f"[TINT4] Loaded {len(sd)} keys")
@@ -493,6 +511,153 @@ class TINT4ModelQuantizer:
 			f"  Output: {dst_path}\n"
 			f"  {'='*60}"
 		)
+		return ()
+
+
+	def _quantize_stream(self, src_path, dst_path, model_type, actual_gs,
+						 enable_quarot, dev):
+		"""低内存流式量化：逐张量从磁盘读取→量化→写入 new_sd，
+		不保留整份 fp16 字典。峰值内存 ≈ 输出字典 + 单张量临时值，
+		输出格式与常规路径完全一致（v7: qdata=int32, plain_int32）。"""
+		from safetensors import safe_open
+		from torchao.quantization import Int4WeightOnlyConfig, quantize_
+
+		log.info("[TINT4] stream_mode=ON — 逐张量量化（低内存）")
+		with safe_open(src_path, framework="pt") as f:
+			src_metadata = f.metadata() or {}
+			keys = list(f.keys())
+
+			# fp8/int8 的 per-tensor scale 预扫描：{base}.weight_scale
+			scale_bases = set()
+			for k in keys:
+				if k.endswith(".weight_scale") and \
+						k.rsplit(".weight_scale", 1)[0] + ".weight" in keys:
+					scale_bases.add(k.rsplit(".weight_scale", 1)[0])
+
+			H = None
+			if enable_quarot:
+				from .wint8_quarot import build_hadamard, rotate_weight
+				H = build_hadamard(
+					actual_gs, device=str(dev), dtype=torch.float32)
+				log.info(f"[TINT4] QuaRot enabled, gs={actual_gs}")
+
+			new_sd = {}
+			quantized, excluded, skipped, stripped = 0, 0, 0, 0
+
+			for key in keys:
+				if key.startswith("text_encoders."):
+					stripped += 1
+					continue
+
+				tensor = f.get_tensor(key)
+
+				# FP8 → FP16，应用 per-tensor scale（与常规路径一致）
+				if tensor.dtype in (torch.float8_e4m3fn, torch.float8_e5m2):
+					base0 = (key.rsplit(".weight", 1)[0]
+							 if key.endswith(".weight") else None)
+					scale = (f.get_tensor(base0 + ".weight_scale")
+							 if base0 in scale_bases else None)
+					if scale is not None:
+						tensor = (tensor.float() * scale.float()).to(
+							torch.float16)
+					else:
+						tensor = tensor.to(torch.float16)
+
+				base = (key.rsplit(".weight", 1)[0]
+						if key.endswith(".weight") else None)
+				if base is None or not _should_quantize(
+						key, tensor, model_type):
+					if (base is not None and tensor.ndim == 2
+							and _is_excluded(key, model_type)):
+						excluded += 1
+					new_sd[key] = tensor
+					continue
+
+				# int8 → fp16（per-row scale 与常规路径一致）
+				if tensor.dtype == torch.int8:
+					s_key = f"{base}.weight_scale"
+					if s_key in scale_bases:
+						ws = f.get_tensor(s_key).float().to(dev)
+						w = (tensor.float().to(dev)
+							 * ws.view(-1, 1)).to(torch.float16)
+					else:
+						w = tensor.float().to(dev).to(torch.float16)
+				else:
+					w = tensor.float().to(dev).to(torch.float16)
+
+				layer_quarot = False
+				if H is not None and w.shape[1] % actual_gs == 0:
+					try:
+						w = rotate_weight(w, H, group_size=actual_gs)
+						layer_quarot = True
+					except ValueError:
+						pass
+
+				out_f, in_f = w.shape
+				tmp = nn.Linear(
+					in_f, out_f, bias=False,
+					device=dev, dtype=torch.float16)
+				tmp.weight.data = w.clone()
+				quantize_(tmp, Int4WeightOnlyConfig(
+					group_size=actual_gs,
+					int4_packing_format="plain_int32",
+				))
+
+				if not hasattr(tmp.weight, 'qdata'):
+					log.warning(
+						f"[TINT4] Layer {key} NOT quantized "
+						f"(in_f={in_f} incompatible with gs={actual_gs}), "
+						f"keeping original fp16")
+					skipped += 1
+					new_sd[key] = tensor
+					del w, tmp
+					continue
+
+				qt = tmp.weight
+				new_sd[key] = qt.qdata.cpu()                    # int32
+				new_sd[f"{base}.weight_scale"] = qt.scale.cpu()  # fp16
+				new_sd[f"{base}.weight_zp"] = qt.zero_point.cpu()  # int8
+				new_sd[f"{base}.weight_b0"] = torch.tensor(
+					qt.block_size[0], dtype=torch.int32)
+				new_sd[f"{base}.weight_b1"] = torch.tensor(
+					qt.block_size[1], dtype=torch.int32)
+				new_sd[f"{base}.comfy_quant"] = _make_comfy_quant_meta(
+					quarot=layer_quarot,
+					group_size=actual_gs if layer_quarot else None,
+				)
+				quantized += 1
+				del w, tmp, qt, tensor
+
+			if dev.type in ("xpu", "cuda"):
+				try:
+					(torch.xpu if dev.type == "xpu"
+					 else torch.cuda).empty_cache()
+				except Exception:
+					pass
+
+			new_sd["__tint4_format__"] = torch.tensor(1, dtype=torch.uint8)
+			new_sd["__tint4_quarot__"] = torch.tensor(
+				1 if enable_quarot else 0, dtype=torch.uint8)
+			new_sd["__tint4_group_size__"] = torch.tensor(
+				actual_gs, dtype=torch.int32)
+			new_sd["__tint4_model_type__"] = _str_tensor(model_type)
+
+			save_kwargs = {"metadata": src_metadata} if src_metadata else {}
+			log.info(f"[TINT4] Writing {dst_path} ...")
+			comfy.utils.save_torch_file(new_sd, dst_path, **save_kwargs)
+
+			log.info(
+				f"\n{'='*60}\n"
+				f"  TINT4 Quantization Complete (torchao INT4 v7 · stream)\n"
+				f"  Model: {os.path.basename(src_path)}"
+				f" | Type: {model_type}\n"
+				f"  Device: {dev} | QuaRot: {enable_quarot}"
+				f" | gs={actual_gs}\n"
+				f"  Quantized: {quantized} | Excluded: {excluded}"
+				f" | Skipped: {skipped} | TextEnc stripped: {stripped}\n"
+				f"  Output: {dst_path}\n"
+				f"  {'='*60}"
+			)
 		return ()
 
 

@@ -294,6 +294,7 @@ python analyse_quant.py 模型路径.safetensors 模型类型
 | `boogu` | ✅ 架构检测已修复 |
 | `z-image` | ✅ LoRA 生效正常 |
 | `wan` / `ltx2` / `qwen` / `ernie` / `hidream` / `chroma` / `ideogram4` / `anima` | ⚠️ 排除列表已配置，等待社区反馈 |
+| `minimax_h3` | 🧪 实验性支持：排除列表与 comfy-kitchen INT4_CONVROT 一致，检测复用 ComfyUI 原生实现（待实测） |
 | `auto` | 空白排除列表，按需使用 |
 | 旧win4常用模型全部验证成功，时间原因tint4量化稳步验证推进中....  |
 
