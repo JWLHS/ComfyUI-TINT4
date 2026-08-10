@@ -354,6 +354,12 @@ class TINT4ModelQuantizer:
 			f"[TINT4] device={dev}  gs={group_size}"
 			f"  quarot={enable_quarot}")
 
+		# ── Boogu: force group_size=32 ────────────────────────────────
+		actual_gs = group_size
+		if model_type == "boogu":
+			actual_gs = 32
+			log.info("[TINT4] Boogu: overriding group_size → 32")
+
 		if stream_mode:
 			return self._quantize_stream(
 				src_path, dst_path, model_type, actual_gs,
@@ -369,12 +375,6 @@ class TINT4ModelQuantizer:
 		except Exception:
 			pass
 
-		# ── Boogu: force group_size=32 ────────────────────────────────
-		actual_gs = group_size
-		if model_type == "boogu":
-			actual_gs = 32
-			log.info("[TINT4] Boogu: overriding group_size → 32")
-
 		# ── QuaRot ────────────────────────────────────────────────────
 		H = None
 		if enable_quarot:
@@ -389,6 +389,11 @@ class TINT4ModelQuantizer:
 			tensor = sd[key]
 			if not isinstance(tensor, torch.Tensor):
 				continue
+			# 同 stream 路径：跳过 fp8 per-tensor scale 键，防止覆盖分组 scale
+			if key.endswith(".weight_scale"):
+				base0 = key.rsplit(".weight_scale", 1)[0]
+				if base0 + ".weight" in sd:
+					continue
 
 			base = (key.rsplit(".weight", 1)[0]
 					if key.endswith(".weight") else None)
@@ -548,6 +553,12 @@ class TINT4ModelQuantizer:
 				if key.startswith("text_encoders."):
 					stripped += 1
 					continue
+				# fp8 源的 per-tensor scale 键：缩放已在处理 .weight 时用掉，
+				# 若保留会按字典序/文件序覆盖 torchao 量化产物的分组 scale。
+				if key.endswith(".weight_scale"):
+					base0 = key.rsplit(".weight_scale", 1)[0]
+					if base0 + ".weight" in keys:
+						continue
 
 				tensor = f.get_tensor(key)
 
