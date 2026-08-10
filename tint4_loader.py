@@ -15,17 +15,148 @@ import torch.nn as nn
 import torch.nn.functional as F
 import gc, os, json, hashlib, math
 import logging
+import weakref
 import folder_paths
 import comfy.sd
 import comfy.model_detection
 import comfy.utils
 import comfy.ops
+import comfy.model_management
 from torchao.quantization.quantize_.workflows.int4.int4_plain_int32_tensor import (
 	Int4PlainInt32Tensor,
 )
 from safetensors import safe_open
 
 log = logging.getLogger("TINT4-Loader")
+log.info(f"[TINT4] TINT4_ONEDNN={os.environ.get('TINT4_ONEDNN', '<unset>')} (oneDNN u4 backend)")
+
+# ---------------------------------------------------------------------------
+# Unload integration: ComfyUI's unload_all_models() cannot see the GPU-cached
+# int4 tensors (_qt) through AIMDO's detach wrapper, so VRAM stayed pinned
+# after sampling (~10GiB for H3) and VAE decode OOM'd.  Register every loaded
+# diffusion model here and flush its TINT4Linear caches whenever ComfyUI
+# unloads all models.
+# ---------------------------------------------------------------------------
+_TINT4_MODEL_REFS: list = []
+
+# ── qdata VRAM budget (LRU) ────────────────────────────────────────────
+# Caching all 200 layers' int4 qdata (~10GiB) plus H3 conditioning leaves
+# <2GiB of steady VRAM on a 16GiB card; step transients then sporadically
+# OOM the L0 driver (error 40/20).  Cap the GPU-resident qdata and evict the
+# least-recently-used layers back to CPU (re-upload ~0.2s/2GiB per step).
+_TINT4_QDATA_BUDGET = 8 * 1024 ** 3
+_TINT4_ONEDNN_BUDGET = 7.5 * 1024 ** 3
+_TINT4_QDATA_LRU: list = []  # [(weakref to layer, size_bytes)]
+_TINT4_EVICT_PENDING: list = []  # layers whose _qt must be freed AFTER a sync
+
+
+def _tint4_qdata_size(layer) -> int:
+    try:
+        n = 0
+        qt = layer._qt
+        if qt is not None and getattr(qt, "device", None) is not None and qt.device.type != "cpu":
+            for attr in ("qdata", "scale", "zero_point"):
+                t = getattr(qt, attr, None)
+                if t is not None:
+                    n += t.numel() * t.element_size()
+        return n
+    except Exception:
+        return 0
+
+
+def _tint4_touch(layer):
+    try:
+        size = _tint4_qdata_size(layer)
+        if size <= 0:
+            return
+        # move this layer to the MRU end
+        _TINT4_QDATA_LRU[:] = [e for e in _TINT4_QDATA_LRU if e[0]() is not layer]
+        _TINT4_QDATA_LRU.append((weakref.ref(layer), size))
+        total = sum(s for _, s in _TINT4_QDATA_LRU)
+        # oneDNN mode: keep the whole model resident (~10GB); the native u4
+        # path rebuilds cached inputs per eviction, which is far costlier than
+        # int4pack. 10GB resident + ~4GB sampling transients fits 15.56GB.
+        budget = (_TINT4_ONEDNN_BUDGET
+                  if os.environ.get("TINT4_ONEDNN") == "1"
+                  else _TINT4_QDATA_BUDGET)
+        evicted = 0
+        while total > budget and len(_TINT4_QDATA_LRU) > 1:
+            ref, sz = _TINT4_QDATA_LRU.pop(0)
+            m = ref()
+            if m is not None:
+                if evicted == 0:
+                    # One sync per eviction batch: guarantees every earlier
+                    # layer's GEMM has finished, so freeing now is race-free
+                    # and frees VRAM DURING the first forward (otherwise the
+                    # run stays at the full ~10GiB and step transients OOM the
+                    # L0 driver with only ~0.2GiB free).
+                    try:
+                        torch.xpu.synchronize()
+                    except Exception:
+                        pass
+                if m._qt is not None and m._qt.device.type != "cpu":
+                    m._qt = None
+                m._onednn_packed = None
+                m._onednn_scales = None
+                m._onednn_corr = None
+            total -= sz
+            evicted += 1
+        if evicted:
+            log.info(f"[TINT4] qdata LRU evicted {evicted} layers (resident {total/1e9:.1f}GB)")
+    except Exception:
+        pass
+
+
+def _tint4_flush_pending():
+    """Free deferred evictions.  Caller must have synchronized the XPU queue."""
+    try:
+        for m in _TINT4_EVICT_PENDING:
+            if m._qt is not None and m._qt.device.type != "cpu":
+                m._qt = None
+        _TINT4_EVICT_PENDING.clear()
+    except Exception:
+        pass
+
+def _register_tint4_model(model):
+    try:
+        _ensure_unload_hook()
+        dm = model.model.diffusion_model
+        while hasattr(dm, "_orig_mod"):
+            dm = dm._orig_mod
+        _TINT4_MODEL_REFS.append(weakref.ref(dm))
+    except Exception:
+        pass
+
+def _flush_tint4_all():
+    dead = []
+    for ref in _TINT4_MODEL_REFS:
+        dm = ref()
+        if dm is None:
+            dead.append(ref)
+            continue
+        try:
+            for m in dm.modules():
+                if isinstance(m, TINT4Linear):
+                    m.release_xpu()
+        except Exception:
+            pass
+    for d in dead:
+        _TINT4_MODEL_REFS.remove(d)
+    if torch.xpu.is_available():
+        torch.xpu.empty_cache()
+
+_orig_unload_all_models = comfy.model_management.unload_all_models
+def _unload_all_models_with_tint4():
+    _flush_tint4_all()
+    return _orig_unload_all_models()
+
+def _ensure_unload_hook():
+    # Re-assert the wrapper at every load in case another plugin (AIMDO)
+    # replaced unload_all_models after we were imported.
+    global _orig_unload_all_models
+    if comfy.model_management.unload_all_models is not _unload_all_models_with_tint4:
+        _orig_unload_all_models = comfy.model_management.unload_all_models
+        comfy.model_management.unload_all_models = _unload_all_models_with_tint4
 
 _orig_detect = comfy.model_detection.detect_unet_config
 
@@ -123,20 +254,34 @@ class TINT4Linear(nn.Module):
 		self._scale = scale
 		self._zp = zp
 		self._block_size = block_size
-		self._qt = None
+		# Registered (non-persistent) buffer so ComfyUI's model unload/offload
+		# machinery moves the GPU-cached int4 tensor back to CPU and frees VRAM.
+		# Before this, _qt lived in a plain attribute (~10GiB for H3) that
+		# unload_all_models() could not see -> VRAM stayed pinned after sampling.
+		self.register_buffer("_qt", None, persistent=False)
 		self._use_quarot: bool = False
 		self._group_size: int = 128
 		self._hadamard_H = None
 		self._tint4_lora_entries: dict | None = None
 		self._tint4_bake_state: dict | None = None
+		# oneDNN u4 GEMM backend (2026-08-10 local patch): avoids the unstable
+		# torch int4pack op on XPU (M=237 driver crash) and uses Intel's native
+		# u4 matmul. Enable with TINT4_ONEDNN=1.
+		self._onednn_packed: torch.Tensor | None = None
+		self._onednn_scales: torch.Tensor | None = None
+		self._onednn_corr: torch.Tensor | None = None
+		self._use_onednn: bool = os.environ.get("TINT4_ONEDNN", "0") == "1"
 
 	def __del__(self):
-		self._qdata = None
-		self._scale = None
-		self._zp = None
-		self._qt = None
-		self._tint4_lora_entries = None
-		self._tint4_bake_state = None
+		try:
+			self._qdata = None
+			self._scale = None
+			self._zp = None
+			self._qt = None
+			self._tint4_lora_entries = None
+			self._tint4_bake_state = None
+		except Exception:
+			pass
 
 	@property
 	def weight(self):
@@ -154,9 +299,75 @@ class TINT4Linear(nn.Module):
 
 	def release_xpu(self):
 		self._qt = None
+		self._onednn_packed = None
+		self._onednn_scales = None
+		self._onednn_corr = None
+
+	def _get_onednn_inputs(self, dev):
+		"""Lazily convert torchao plain_int32 qdata -> oneDNN u4 inputs.
+
+		plain_int32 layout: each int32 holds 8 int4 values (4 bytes x 2 nibbles,
+		low nibble = even column).  Viewed as uint8 this is exactly the oneDNN
+		[N, K/2] u4 layout (byte j = columns 2j, 2j+1, low nibble first).
+		oneDNN applies a fixed scalar zp=8 ((u4-8)*scale); torchao asymmetric
+		quantization uses a per-group zp, so we add the correction
+		out += rowsum_per_group(act) @ corr^T  with corr = (8 - zp) * scale.
+		"""
+		if self._onednn_packed is not None and self._onednn_packed.device == dev:
+			return self._onednn_packed, self._onednn_scales, self._onednn_corr
+		if not getattr(self, "_onednn_diag", False) and os.environ.get("TINT4_ONEDNN_DEBUG") == "1":
+			object.__setattr__(self, "_onednn_diag", True)
+			log.info(f"[TINT4] onednn first build layer {self.out_features}x{self.in_features}")
+		qb = self._qdata.view(torch.uint8).reshape(
+			self.out_features, self.in_features // 2).contiguous()
+		s = self._scale
+		z = self._zp
+		packed = qb.to(dev)
+		# TINT4 stores scale/zp as [G, N] (groups x out_features).
+		scales = s.float().contiguous().to(torch.float16).to(dev)
+		corr = ((8.0 - z.float()) * s.float()).contiguous().to(torch.float16).to(dev)
+		self._onednn_packed = packed
+		self._onednn_scales = scales
+		self._onednn_corr = corr
+		if os.environ.get("TINT4_ONEDNN_DEBUG") == "1":
+			log.info(f"[TINT4] onednn inputs diag {self.out_features}x{self.in_features}: "
+					f"qdata_nan={int(torch.isnan(self._qdata.float()).sum().item())} "
+					f"scale_nan={int(torch.isnan(self._scale.float()).sum().item())} "
+					f"zp_min={float(self._zp.float().min().item())} zp_max={float(self._zp.float().max().item())} "
+					f"scale_min={float(self._scale.float().min().item())} scale_max={float(self._scale.float().max().item())} "
+					f"scale_inf={int(torch.isinf(self._scale.float()).sum().item())} "
+					f"quarot={self._use_quarot}")
+		return packed, scales, corr
+
+	def _dequant_fp16(self, dev):
+		"""Reconstruct fp16 weights from the plain_int32 layout (CPU tensors).
+
+		Packing (torchao 'plain_int32' / 'n'): each int32 holds 4 little-endian
+		bytes, each byte packs 2 int4 values (even column in the low nibble).
+		Used for small-M forwards where torch's XPU int4pack GEMM is unstable
+		(e.g. M=237 hard-crashes the L0 driver even standalone).
+		"""
+		bs = self._block_size
+		gs = bs[1] if isinstance(bs, (tuple, list)) else bs
+		q = self._qdata
+		s = self._scale
+		z = self._zp
+		out_f, k8 = q.shape
+		k = k8 * 8
+		qb = q.view(torch.uint8).reshape(out_f, k8, 4)
+		lo = (qb & 0x0F).to(torch.float16)
+		hi = ((qb >> 4) & 0x0F).to(torch.float16)
+		vals = torch.stack([lo, hi], dim=-1).reshape(out_f, k)
+		idx = torch.arange(k, device=q.device) // gs
+		sc = s.t().to(torch.float16)[:, idx]
+		zc = z.t().to(torch.float16)[:, idx]
+		return ((vals - zc) * sc).to(dev)
 
 	def forward(self, x):
 		x2 = x.reshape(-1, x.shape[-1])
+		if not getattr(self, "_dtype_diag", False) and os.environ.get("TINT4_ONEDNN_DEBUG") == "1":
+			object.__setattr__(self, "_dtype_diag", True)
+			log.info(f"[TINT4] forward x dtype={x.dtype} x2.shape={tuple(x2.shape)}")
 		if self._use_quarot and self._hadamard_H is not None:
 			try:
 				from .wint8_quarot import rotate_activation
@@ -164,12 +375,59 @@ class TINT4Linear(nn.Module):
 			except Exception:
 				pass
 		dev = x.device
-		if self._qt is None or self._qt.device != dev:
-			self._qt = Int4PlainInt32Tensor(
-				self._qdata.to(dev), self._scale.to(dev), self._zp.to(dev),
-				self._block_size, [self.out_features, self.in_features],
-			)
-		out = F.linear(x2, self._qt, None)
+		if x2.shape[0] < 512:
+			# Small forwards (conditioning/ref passes): torch's XPU int4pack
+			# GEMM is unstable for some M (M=237 hard-crashes the driver);
+			# use a plain fp16 GEMM instead.  Peak cost is negligible at
+			# these sizes.
+			out = F.linear(x2, self._dequant_fp16(dev), None)
+		else:
+			# oneDNN u4 GEMM is numerically unstable at very large M in this
+			# driver/oneDNN combo (intermittent all-NaN after several calls);
+			# keep the big sampling forwards on the proven int4pack path.
+			if self._use_onednn and x2.shape[0] < 4096:
+				try:
+					from omni_xpu_kernel import svdq as _svdq
+					packed, scales, corr = self._get_onednn_inputs(dev)
+					x2c = x2.contiguous()
+					# oneDNN bf16 u4 GEMM is numerically poor on large M
+					# (measured ~2.5% rel error vs 0.28% for f16) -> compute in
+					# f16, then cast back to the model dtype.
+					act_f16 = x2c.to(torch.float16) if x2c.dtype != torch.float16 else x2c
+					out = _svdq.onednn_int4_gemm_preconverted(act_f16, packed, scales)
+					num_groups = scales.shape[0]
+					gs = self.in_features // num_groups
+					act_gs = act_f16.reshape(act_f16.shape[0], num_groups, gs).sum(dim=-1)
+					out = out + act_gs @ corr
+					if x2c.dtype != torch.float16:
+						out = out.to(x2c.dtype)
+					_tint4_touch(self)
+					if not getattr(self, "_nan_diag", False) and os.environ.get("TINT4_ONEDNN_DEBUG") == "1":
+						_nan = int(torch.isnan(out.float()).sum().item())
+						_inf = int(torch.isinf(out.float()).sum().item())
+						_absmax = float(out.abs().max().item()) if out.numel() else 0.0
+						_mean = float(out.float().mean().item()) if out.numel() else 0.0
+						object.__setattr__(self, "_nan_diag", True)
+						log.info(f"[TINT4] onednn out layer {self.out_features}x{self.in_features} "
+								f"nan={_nan} inf={_inf} absmax={_absmax:.4f} mean={_mean:.6f}")
+				except Exception as e:
+					log.warning(f"[TINT4] oneDNN GEMM failed, falling back to int4pack: {e}")
+					self._use_onednn = False
+					if self._qt is None or self._qt.device != dev:
+						self._qt = Int4PlainInt32Tensor(
+							self._qdata.to(dev), self._scale.to(dev), self._zp.to(dev),
+							self._block_size, [self.out_features, self.in_features],
+						)
+					_tint4_touch(self)
+					out = F.linear(x2, self._qt, None)
+			else:
+				if self._qt is None or self._qt.device != dev:
+					self._qt = Int4PlainInt32Tensor(
+						self._qdata.to(dev), self._scale.to(dev), self._zp.to(dev),
+						self._block_size, [self.out_features, self.in_features],
+					)
+				_tint4_touch(self)
+				out = F.linear(x2, self._qt, None)
 
 		entries = self._tint4_lora_entries
 		if entries is not None and len(entries) > 0:
@@ -676,6 +934,17 @@ class TINT4ModelLoader:
 		from .tint4_quantizer import model_type_key
 		model_type = model_type_key(model_type)
 
+		# TINT4's real GPU footprint (~10-11GiB once _qt uploads) is invisible
+		# to ComfyUI's planner until the first forward, so a previous run's VAE /
+		# other models can still be resident and the qdata upload OOMs (error 40)
+		# or kills the L0 context.  Unload everything first for a clean slate.
+		try:
+			comfy.model_management.unload_all_models()
+			comfy.model_management.soft_empty_cache()
+			log.info("[TINT4] Pre-load: unloaded all other models (clean VRAM)")
+		except Exception:
+			pass
+
 		from .tint4_lora_common import _read_clear_signal, _tint4_reset_all_loras
 		force_reset = _read_clear_signal()
 		if force_reset:
@@ -767,17 +1036,19 @@ class TINT4ModelLoader:
 			except Exception as e:
 				log.warning(f"[TINT4] Failed to read cache: {e}")
 
-			from .tint4_aimdo import build_weight_placeholders
-			n_placeholders, placeholder_note = build_weight_placeholders(
-				_quant_specs, sd)
+		# 占位符注入必须在模型构建之前无条件执行（首次加载无缓存文件时
+		# 同样需要），否则 sd 缺少量化层权重，ComfyUI 构建会 KeyError。
+		from .tint4_aimdo import build_weight_placeholders
+		n_placeholders, placeholder_note = build_weight_placeholders(
+			_quant_specs, sd)
 
-			log.info(
-				f"[TINT4] QuaRot={'ON' if is_quarot else 'OFF'}"
-				f"  gs={quarot_gs}  "
-				f"{len(quant_map)} quant layers, {len(sd)} sd keys"
-				f"  ({n_placeholders} weight placeholders)  {placeholder_note}"
-			)
-			del _quant_specs; gc.collect()
+		log.info(
+			f"[TINT4] QuaRot={'ON' if is_quarot else 'OFF'}"
+			f"  gs={quarot_gs}  "
+			f"{len(quant_map)} quant layers, {len(sd)} sd keys"
+			f"  ({n_placeholders} weight placeholders)  {placeholder_note}"
+		)
+		del _quant_specs; gc.collect()
 
 		H = None
 		if is_quarot:
@@ -909,6 +1180,12 @@ class TINT4ModelLoader:
 		log.info(
 			f"[TINT4] Loaded '{unet_name}' | {injected} INT4 layers"
 		)
+		try:
+			import comfy.ldm.minimax.model as _h3m
+			_h3m._tint4_flush_hook = _tint4_flush_pending
+		except Exception:
+			pass
+		_register_tint4_model(model)
 		return (model,)
 
 

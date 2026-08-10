@@ -64,9 +64,18 @@ def build_weight_placeholders(quant_specs, sd):
         return len(quant_specs), "(AIMDO mode — full placeholders)"
     else:
         _specs_sorted = sorted(quant_specs, key=lambda x: x[0])
-        _seen = set()
+        # MiniMax H3：ComfyUI 架构检测会直接读取
+        # blocks.0.attn.qkv_proj.weight / blocks.0.mlp.fc1.weight，
+        # 而 H3 所有层前缀都是 blocks.0，按前缀去重会漏掉它们。
+        # 这里强制把这两个检测键纳入占位符。
         _chosen = []
         for _base, _sh0, _sh1 in _specs_sorted:
+            if _base in ("blocks.0.attn.qkv_proj", "blocks.0.mlp.fc1"):
+                _chosen.append((_base, _sh0, _sh1))
+        _seen = set()
+        for _base, _sh0, _sh1 in _specs_sorted:
+            if (_base, _sh0, _sh1) in _chosen:
+                continue
             _parts = _base.split(".")
             _pfx = ".".join(_parts[:2]) if len(_parts) >= 2 else _base
             if _pfx not in _seen:
