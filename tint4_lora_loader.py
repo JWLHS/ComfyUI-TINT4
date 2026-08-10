@@ -11,10 +11,14 @@ v1.0.0: initial release.
 """
 import time
 import logging
+import os
+import math
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import folder_paths
 import comfy.utils
+import comfy.patcher_extension
 from .tint4_lora_common import (
 	_tint4_reset_all_loras,
 	_auto_detect_format,
@@ -27,6 +31,95 @@ from .tint4_loader import TINT4Linear
 from .tint4_lora_cache import load_lora_cache, save_lora_cache
 
 log = logging.getLogger("TINT4-LoRA")
+
+
+# ── Pruned-base adaln grid injection (adapted from ComfyUI-MiniMax-H3-Turbo,
+#    Apache-2.0): on pruned H3 the adaln update lives in the 2688-dim
+#    silu(t_emb) space, so it can't be a weight patch.  We re-inject it at run
+#    time via a shared E-grid + forward-attribute patches on each block's
+#    adaln_proj (which the TINT4 model keeps per-block).
+_SHIFT_V, _SHIFT_A = 12.0, 3.0
+_EGRID_CACHE = None
+
+
+def _egrid_tint4():
+    global _EGRID_CACHE
+    if _EGRID_CACHE is None:
+        p = os.path.join(os.path.dirname(__file__), "..", "ComfyUI-MiniMax-H3-Turbo",
+                         "h3_silu_temb_grid.safetensors")
+        p = os.path.abspath(p)
+        if not os.path.exists(p):
+            raise FileNotFoundError(f"E-grid missing: {p}")
+        _EGRID_CACHE = comfy.utils.load_torch_file(p)["silu_t_emb_grid"]  # [1025, 2688]
+    return _EGRID_CACHE
+
+
+def _time_shift_sigma_tint4(sigma, fr, to):
+    base = sigma / (fr + sigma * (1.0 - fr))
+    return to * base / (1.0 + (to - 1.0) * base)
+
+
+def _unique_t_tint4(timestep, shift_v, shift_a, has_vis_cond):
+    sv = float((timestep.flatten()[0] / 1000.0).clamp(min=1e-6))
+    t_v = 1.0 - sv
+    t_a = 1.0 - _time_shift_sigma_tint4(sv, shift_v, shift_a)
+    s = {t_v, t_a}
+    if has_vis_cond:
+        s.add(max(t_v, 0.999))
+    return sorted(s)
+
+
+def _interp_egrid_tint4(unique_t, E, device, dtype):
+    E = E.to(device)
+    n = E.shape[0]
+    rows = []
+    for t in unique_t:
+        pos = min(max(t, 0.0), 1.0) * (n - 1)
+        i0 = min(int(math.floor(pos)), n - 2)
+        rows.append(torch.lerp(E[i0].float(), E[i0 + 1].float(), pos - i0))
+    return torch.stack(rows).to(dtype)  # [M, 2688]
+
+
+def _make_adaln_forward_tint4(base, a, b, shared):
+    """Returns a replacement AdalnProj.forward that adds B @ A @ silu(t_emb)."""
+    def forward(t_emb):
+        x = base.linear(F.silu(t_emb) if base.apply_silu else t_emb)
+        st = shared.get("silu_temb")
+        if st is not None:
+            av = a.to(x.device, x.dtype)
+            bv = b.to(x.device, x.dtype)
+            sv = st.to(x.device, x.dtype)
+            x = x + (bv @ (av @ sv.T)).T
+        x = x.view(x.shape[0] * base.modalities, base.expand * base.hidden)
+        return x.chunk(base.expand, dim=-1)
+    return forward
+
+
+def _inject_adaln_egrid_tint4(new_model, dm, lora, adaln, strength):
+    E = _egrid_tint4()
+    shared = {"silu_temb": None}
+    shift_v = float(getattr(dm, "sigma_shift_video", _SHIFT_V))
+    shift_a = float(getattr(dm, "sigma_shift_audio", _SHIFT_A))
+
+    def wrap(executor, *args, **kwargs):
+        ts = args[1] if len(args) > 1 else kwargs.get("timestep")
+        ctx = args[2] if len(args) > 2 else kwargs.get("context")
+        payload = kwargs.get("minimax_payload") or {}
+        has_vc = bool(payload.get("keyframes") or payload.get("refs"))
+        us = _unique_t_tint4(ts, shift_v, shift_a, has_vc)
+        shared["silu_temb"] = _interp_egrid_tint4(us, E, ctx.device, ctx.dtype)
+        return executor(*args, **kwargs)
+
+    new_model.add_wrapper_with_key(
+        comfy.patcher_extension.WrappersMP.DIFFUSION_MODEL, "h3turbo", wrap)
+    for name in adaln:
+        a = lora[name + ".lora_A.weight"]
+        b = lora[name + ".lora_B.weight"] * strength
+        key = "diffusion_model." + name.rsplit(".linear", 1)[0]
+        new_model.add_object_patch(
+            key + ".forward",
+            _make_adaln_forward_tint4(new_model.get_model_object(key), a, b, shared))
+    return len(adaln)
 
 _INJECT_TIMING_THRESHOLD = 3.0
 
@@ -123,7 +216,17 @@ def _make_bake_pre_hook(module: nn.Module):
 					B_cpu = B_cpu[sl:se].contiguous()
 				A_gpu = A_cpu.to(device=w_dev, dtype=w_dtype)
 				B_gpu = B_cpu.to(device=w_dev, dtype=w_dtype)
-				delta_gpu = (B_gpu @ A_gpu).mul_(mult)
+				# LoRA files disagree on the down/up convention: standard
+				# diffusers saves A=[rank,in], B=[out,rank] (delta = B@A);
+				# some (e.g. minimax_h3_turbo adaln) save A=[in,rank],
+				# B=[out,rank] (delta = B@A.T).  Try the direct product first,
+				# then the transposed fallback.
+				try:
+					delta_gpu = (B_gpu @ A_gpu).mul_(mult)
+					if delta_gpu.shape != module.weight.shape:
+						raise RuntimeError("shape mismatch, retry transposed")
+				except Exception:
+					delta_gpu = (B_gpu @ A_gpu.T).mul_(mult)
 				if sl is not None and se is not None:
 					if delta_gpu.shape[0] != (se - sl):
 						delta_gpu = delta_gpu[sl:se].contiguous()
@@ -134,7 +237,11 @@ def _make_bake_pre_hook(module: nn.Module):
 					module.weight.data.add_(delta_gpu)
 				applied.append((delta_gpu.to(device=cpu, dtype=torch.float16).clone(), sl, se))
 		except Exception as e:
-			log.warning(f"[TINT4 LoRA] bake pre-hook failed: {e}")
+			log.warning(
+				f"[TINT4 LoRA] bake pre-hook failed: {e} | "
+				f"mod={type(module).__name__} w={tuple(module.weight.shape)} "
+				f"A={tuple(A_cpu.shape)} B={tuple(B_cpu.shape)}"
+			)
 		bs.pop('_pending', None)
 		bs['_applied'] = applied
 		hh = bs.pop('_hook_handle', None)
@@ -216,6 +323,17 @@ class TINT4LoRALoader:
 			dm, index, lora_sd, lora_data, lora_name, strength,
 			quarot_enabled, group_size, H, dev, cpu)
 
+		adaln_injected = 0
+		try:
+			if getattr(dm, "use_adaln_curves", False):
+				adaln_names = sorted({k.rsplit(".lora_A.weight", 1)[0] for k in lora_sd
+				                      if k.endswith("adaln_proj.linear.lora_A.weight")})
+				if adaln_names:
+					adaln_injected = _inject_adaln_egrid_tint4(
+						model, dm, lora_sd, adaln_names, strength)
+		except Exception as _e:
+			log.warning(f"[TINT4 LoRA] adaln grid injection failed: {_e}")
+
 		if cached is None:
 			save_lora_cache(lora_path, fmt, cacheable_keys)
 
@@ -223,7 +341,7 @@ class TINT4LoRALoader:
 		tag = "cached" if cached else "full load"
 		log.info(
 			f"[TINT4 LoRA] ✓ {lora_name} | {tag} | "
-			f"{aq} quant + {ab} bake-in | "
+			f"{aq} quant + {ab} bake-in + {adaln_injected} adaln-grid | "
 			f"strength={strength} | {elapsed:.2f}s"
 		)
 
@@ -247,6 +365,12 @@ class TINT4LoRALoader:
 		for norm, info in lora_data.items():
 			t_layer = time.perf_counter()
 			lora_type = info.get("type", "standard")
+
+			# Pruned H3: adaln keys are re-injected at runtime via the E-grid
+			# (see _inject_adaln_egrid_tint4); never weight-patch them here.
+			if "adaln_proj" in norm:
+				log.debug(f"[TINT4 LoRA] adaln skipped for weight-path: {norm}")
+				continue
 
 			if norm.endswith(".attn.qkv"):
 				targets = _resolve_qkv_slices(index, norm)

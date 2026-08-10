@@ -264,9 +264,9 @@ class TINT4Linear(nn.Module):
 		self._hadamard_H = None
 		self._tint4_lora_entries: dict | None = None
 		self._tint4_bake_state: dict | None = None
-		# oneDNN u4 GEMM backend (2026-08-10 local patch): avoids the unstable
-		# torch int4pack op on XPU (M=237 driver crash) and uses Intel's native
-		# u4 matmul. Enable with TINT4_ONEDNN=1.
+		# oneDNN u4 GEMM backend: avoids the unstable torch int4pack op on XPU
+		# (M=237 driver crash) and uses Intel's native u4 matmul. Enable with
+		# TINT4_ONEDNN=1.
 		self._onednn_packed: torch.Tensor | None = None
 		self._onednn_scales: torch.Tensor | None = None
 		self._onednn_corr: torch.Tensor | None = None
