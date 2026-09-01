@@ -13,7 +13,7 @@ v8.3.1: _detach_cleanup now flushes cached _qt on all TINT4Linear
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import gc, os, json, hashlib, math
+import gc, os, json, hashlib, math, time
 import logging
 import weakref
 import folder_paths
@@ -48,6 +48,10 @@ _TINT4_QDATA_BUDGET = 8 * 1024 ** 3
 _TINT4_ONEDNN_BUDGET = 7.5 * 1024 ** 3
 _TINT4_QDATA_LRU: list = []  # [(weakref to layer, size_bytes)]
 _TINT4_EVICT_PENDING: list = []  # layers whose _qt must be freed AFTER a sync
+# LRU 驱逐日志限频：每层 forward 都会 touch，逐次 info 会刷屏（H3 采样
+# 时每步几十行）。累计驱逐层数，每 5 秒或每累计 100 层打一行汇总。
+_TINT4_EVICT_ACC = 0
+_TINT4_EVICT_LAST_LOG = 0.0
 
 
 def _tint4_qdata_size(layer) -> int:
@@ -66,6 +70,14 @@ def _tint4_qdata_size(layer) -> int:
 
 def _tint4_touch(layer):
     try:
+        # ── AIMDO 让路（2026-09-01，参照 int4xpu 正式版）──
+        # DLL/劫持版 AIMDO 活跃时，权重不自己驱逐：常驻显存，显存整体
+        # 水位（换 CLIP/VAE 等 staged 权重）交给 AIMDO 管。逐层驱逐重建
+        # 是采样前停留 + CPU 打满的根源（H3 250 层每步驱逐/重建）。
+        # 无 AIMDO 时保持原 LRU 行为。
+        from .tint4_aimdo import is_aimdo_active
+        if is_aimdo_active():
+            return
         size = _tint4_qdata_size(layer)
         if size <= 0:
             return
@@ -102,7 +114,16 @@ def _tint4_touch(layer):
             total -= sz
             evicted += 1
         if evicted:
-            log.info(f"[TINT4] qdata LRU evicted {evicted} layers (resident {total/1e9:.1f}GB)")
+            global _TINT4_EVICT_ACC, _TINT4_EVICT_LAST_LOG
+            _TINT4_EVICT_ACC += evicted
+            _now = time.time()
+            if _now - _TINT4_EVICT_LAST_LOG >= 5.0 or _TINT4_EVICT_ACC >= 100:
+                log.info(
+                    f"[TINT4] qdata LRU evicted {_TINT4_EVICT_ACC} layers "
+                    f"(resident {total/1e9:.1f}GB)"
+                )
+                _TINT4_EVICT_ACC = 0
+                _TINT4_EVICT_LAST_LOG = _now
     except Exception:
         pass
 
@@ -143,7 +164,13 @@ def _flush_tint4_all():
     for d in dead:
         _TINT4_MODEL_REFS.remove(d)
     if torch.xpu.is_available():
-        torch.xpu.empty_cache()
+        # AIMDO 让路：活跃时不主动清缓存（水位由 AIMDO 管）
+        try:
+            from .tint4_aimdo import is_aimdo_active
+            if not is_aimdo_active():
+                torch.xpu.empty_cache()
+        except Exception:
+            torch.xpu.empty_cache()
 
 _orig_unload_all_models = comfy.model_management.unload_all_models
 def _unload_all_models_with_tint4():
@@ -303,6 +330,19 @@ class TINT4Linear(nn.Module):
 		self._onednn_scales = None
 		self._onednn_corr = None
 
+	def _apply(self, fn, *args, **kwargs):
+		# _qt 注册为 buffer（便于 ComfyUI unload/offload 机制感知），但它是
+		# torchao Int4PlainInt32Tensor 子类：wan 块换入换出走 module.to()
+		# 时 torchao dispatch 的 storage 别名修正会跨设备崩溃
+		# （"Attempted to set the storage ... different device"）。
+		# 设备迁移前先失效设备缓存，_qt 置 None 后 _apply 自动跳过；
+		# 下次 forward 会按需从 _qdata 重建。
+		self._qt = None
+		self._onednn_packed = None
+		self._onednn_scales = None
+		self._onednn_corr = None
+		return super()._apply(fn, *args, **kwargs)
+
 	def _get_onednn_inputs(self, dev):
 		"""Lazily convert torchao plain_int32 qdata -> oneDNN u4 inputs.
 
@@ -380,7 +420,10 @@ class TINT4Linear(nn.Module):
 			# GEMM is unstable for some M (M=237 hard-crashes the driver);
 			# use a plain fp16 GEMM instead.  Peak cost is negligible at
 			# these sizes.
-			out = F.linear(x2, self._dequant_fp16(dev), None)
+			# 反量化权重必须对齐激活 dtype：fp16 模型走 fp16（行为不变），
+			# bf16 模型（如 MiniMax H3 全量底模）走 bf16，否则 bf16×fp16
+			# dtype 不匹配崩溃（实测 adaln_proj 输入为 bf16）。
+			out = F.linear(x2, self._dequant_fp16(dev).to(x2.dtype), None)
 		else:
 			# oneDNN u4 GEMM is numerically unstable at very large M in this
 			# driver/oneDNN combo (intermittent all-NaN after several calls);
@@ -940,7 +983,9 @@ class TINT4ModelLoader:
 		# or kills the L0 context.  Unload everything first for a clean slate.
 		try:
 			comfy.model_management.unload_all_models()
-			comfy.model_management.soft_empty_cache()
+			from .tint4_aimdo import is_aimdo_active
+			if not is_aimdo_active():
+				comfy.model_management.soft_empty_cache()
 			log.info("[TINT4] Pre-load: unloaded all other models (clean VRAM)")
 		except Exception:
 			pass
@@ -1066,6 +1111,49 @@ class TINT4ModelLoader:
 			_captured["config"] = result
 			return result
 
+		# ── 缺失权重占位瘦身（同 tint4_loader_ltx）─────────────────
+		# 量化层权重已进 quant_map，占位符只给少数检测键；其余缺失键在
+		# disable_weight_init 懒加载里会补全尺寸 zeros（H3 实测加载峰值
+		# 52GB）。量化层随后被 TINT4Linear 注入替换，大参数缺失层放 1x1
+		# 占位即可，注入后即释放。
+		from comfy.ops import disable_weight_init as _dwi
+		_orig_lazy = _dwi._lazy_load_from_state_dict
+
+		def _tiny_lazy_load(module, state_dict, prefix, local_metadata,
+							missing_keys, unexpected_keys, weight_shape,
+							bias_shape=None):
+			assign_to_params_buffers = local_metadata.get(
+				"assign_to_params_buffers", False)
+			prefix_len = len(prefix)
+			for k, v in state_dict.items():
+				key = k[prefix_len:]
+				if key == "weight":
+					if not assign_to_params_buffers:
+						v = v.clone()
+					module.weight = torch.nn.Parameter(v, requires_grad=False)
+				elif bias_shape is not None and key == "bias" and v is not None:
+					if not assign_to_params_buffers:
+						v = v.clone()
+					module.bias = torch.nn.Parameter(v, requires_grad=False)
+				else:
+					unexpected_keys.append(k)
+			if module.weight is None:
+				_params = weight_shape[0] * weight_shape[1]
+				if _params >= 1024 * 1024:
+					module.weight = torch.nn.Parameter(
+						torch.zeros((1, 1), dtype=torch.float16),
+						requires_grad=False)
+				else:
+					module.weight = torch.nn.Parameter(
+						torch.zeros(weight_shape), requires_grad=False)
+				missing_keys.append(prefix + "weight")
+			if (bias_shape is not None and module.bias is None
+					and getattr(module, "comfy_need_lazy_init_bias", False)):
+				module.bias = torch.nn.Parameter(
+					torch.zeros(bias_shape), requires_grad=False)
+				missing_keys.append(prefix + "bias")
+
+		_dwi._lazy_load_from_state_dict = staticmethod(_tiny_lazy_load)
 		comfy.model_detection.detect_unet_config = _detect_wrapper
 		try:
 			model = comfy.sd.load_diffusion_model_state_dict(
@@ -1074,6 +1162,7 @@ class TINT4ModelLoader:
 				}, metadata={})
 		finally:
 			comfy.model_detection.detect_unet_config = _orig_detect
+			_dwi._lazy_load_from_state_dict = _orig_lazy
 
 		del sd; gc.collect()
 

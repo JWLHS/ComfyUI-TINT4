@@ -40,52 +40,95 @@ def _restore_cuda_sync():
         torch.cuda.synchronize = _noop_sync
 
 
-def is_aimdo_active() -> bool:
+def aimdo_state() -> str:
+    """运行时 AIMDO 管控三态：
+    'none'   = 无 AIMDO 管控（未装 / cuda 版不生效）
+    'hijack' = 劫持版（纯 Python，无 DLL；_dynamic_vram_enabled 标记）
+    'dll'    = DLL XPU 版（aimdo_xpu.dll；lib 存在 + implementation=xpu
+               + _xpu_allocator_ready）
+    'broken' = DLL 加载但设备未初始化
+    """
     _check_aimdo()
     if not _has_aimdo or _aimdo_ctrl is None:
-        _restore_cuda_sync()
-        return False
+        return "none"
     try:
-        act = getattr(_aimdo_ctrl, '_dynamic_vram_enabled', False)
+        ctrl = _aimdo_ctrl
+        # DLL XPU 版：lib 存在 + implementation == xpu
+        if (getattr(ctrl, "lib", None) is not None
+                and getattr(ctrl, "implementation", None) == "xpu"):
+            if getattr(ctrl, "_xpu_allocator_ready", False):
+                return "dll"
+            return "broken"
+        # 劫持版：无 DLL（lib None），_dynamic_vram_enabled 标记
+        hijack = getattr(ctrl, "_dynamic_vram_enabled", False)
+        if not hijack:
+            try:
+                hijack = callable(getattr(ctrl, "is_dynamic_vram_enabled", None)) \
+                    and bool(ctrl.is_dynamic_vram_enabled())
+            except Exception:
+                hijack = False
+        if hijack:
+            return "hijack"
+        # comfy 兜底：aimdo_enabled 无法细分时按劫持处理
+        try:
+            import comfy.memory_management as _mm
+            if getattr(_mm, "aimdo_enabled", False):
+                return "hijack"
+        except Exception:
+            pass
+        return "none"
+    except Exception:
+        return "none"
+
+
+def is_aimdo_active() -> bool:
+    """统一查询：AIMDO 是否活跃（DLL 或劫持版都算）"""
+    st = aimdo_state()
+    act = st in ("hijack", "dll")
+    try:
         if act:
-            torch.cuda.synchronize = _aimdo_cuda_sync
+            # 仅 CUDA/ROCm 后端需要真实 cuda.synchronize；
+            # XPU 构建 torch.cuda.synchronize() 直接抛
+            # "Torch not compiled with CUDA enabled"，必须保持 noop。
+            if not (hasattr(torch, "xpu") and torch.xpu.is_available()):
+                torch.cuda.synchronize = _aimdo_cuda_sync
         else:
             _restore_cuda_sync()
-        return act
     except Exception:
         _restore_cuda_sync()
-        return False
+    return act
 
 
 def build_weight_placeholders(quant_specs, sd):
-    if is_aimdo_active():
-        for _base, _sh0, _sh1 in quant_specs:
-            sd[f"{_base}.weight"] = torch.zeros(_sh0, _sh1, dtype=torch.uint8)
-        return len(quant_specs), "(AIMDO mode — full placeholders)"
-    else:
-        _specs_sorted = sorted(quant_specs, key=lambda x: x[0])
-        # MiniMax H3：ComfyUI 架构检测会直接读取
-        # blocks.0.attn.qkv_proj.weight / blocks.0.mlp.fc1.weight，
-        # 而 H3 所有层前缀都是 blocks.0，按前缀去重会漏掉它们。
-        # 这里强制把这两个检测键纳入占位符。
-        _chosen = []
-        for _base, _sh0, _sh1 in _specs_sorted:
-            if _base in ("blocks.0.attn.qkv_proj", "blocks.0.mlp.fc1"):
-                _chosen.append((_base, _sh0, _sh1))
-        _seen = set()
-        for _base, _sh0, _sh1 in _specs_sorted:
-            if (_base, _sh0, _sh1) in _chosen:
-                continue
-            _parts = _base.split(".")
-            _pfx = ".".join(_parts[:2]) if len(_parts) >= 2 else _base
-            if _pfx not in _seen:
-                _seen.add(_pfx)
-                _chosen.append((_base, _sh0, _sh1))
-            if len(_chosen) >= 6:
-                break
-        for _base, _sh0, _sh1 in _chosen:
-            sd[f"{_base}.weight"] = torch.zeros(_sh0, _sh1, dtype=torch.uint8)
-        return len(_chosen), "(standard mode — minimal placeholders)"
+    # 占位符只服务两个目的：1) 让 comfy 构建模型时不因缺失权重 KeyError；
+    # 2) 让架构检测能读到少数关键层的真实形状（H3 的 blocks.0.attn.qkv_proj
+    # / blocks.0.mlp.fc1）。量化层构建后立即被 TINT4Linear 注入替换，其余层
+    # 无需全尺寸占位。此前 AIMDO 分支给全部量化层建全尺寸 uint8 占位，H3
+    # （~30B 参数）加载时临时多占 ~30GB RAM（实测峰值 52GB）；改为最小占位
+    # 后加载期 RAM 恢复正常（与 wan/tint4-ltx 的 1x1 占位瘦身一致）。
+    _specs_sorted = sorted(quant_specs, key=lambda x: x[0])
+    # MiniMax H3：ComfyUI 架构检测会直接读取
+    # blocks.0.attn.qkv_proj.weight / blocks.0.mlp.fc1.weight，
+    # 而 H3 所有层前缀都是 blocks.0，按前缀去重会漏掉它们。
+    # 这里强制把这两个检测键纳入占位符。
+    _chosen = []
+    for _base, _sh0, _sh1 in _specs_sorted:
+        if _base in ("blocks.0.attn.qkv_proj", "blocks.0.mlp.fc1"):
+            _chosen.append((_base, _sh0, _sh1))
+    _seen = set()
+    for _base, _sh0, _sh1 in _specs_sorted:
+        if (_base, _sh0, _sh1) in _chosen:
+            continue
+        _parts = _base.split(".")
+        _pfx = ".".join(_parts[:2]) if len(_parts) >= 2 else _base
+        if _pfx not in _seen:
+            _seen.add(_pfx)
+            _chosen.append((_base, _sh0, _sh1))
+        if len(_chosen) >= 6:
+            break
+    for _base, _sh0, _sh1 in _chosen:
+        sd[f"{_base}.weight"] = torch.zeros(_sh0, _sh1, dtype=torch.uint8)
+    return len(_chosen), "(minimal placeholders)"
 
 
 def register_aimdo_hooks(diffusion_model):
@@ -100,9 +143,10 @@ def _flush_tint4_caches(diffusion_model):
 
 
 def patch_model_for_aimdo(model):
-    _check_aimdo()
-    if not _has_aimdo:
+    st = aimdo_state()
+    if st == "none":
         return
+    log.info("[TINT4 AIMDO] state=%s — detach wrapper active", st)
 
     from comfy_aimdo import control as _ctrl
     from .tint4_lora_common import _tint4_reset_all_loras, _empty_accelerator_cache

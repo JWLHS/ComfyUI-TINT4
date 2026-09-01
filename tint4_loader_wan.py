@@ -59,11 +59,13 @@ class TINT4LinearWAN(TINT4Linear):
         n = getattr(self, '_fwd_n', 0) + 1
         object.__setattr__(self, '_fwd_n', n)
         if n % 100 == 0:
-            try:
-                torch.xpu.synchronize()
-                torch.xpu.empty_cache()
-            except Exception:
-                pass
+            from .tint4_aimdo import is_aimdo_active
+            if not is_aimdo_active():
+                try:
+                    torch.xpu.synchronize()
+                    torch.xpu.empty_cache()
+                except Exception:
+                    pass
 
         entries = self._tint4_lora_entries
         if entries and len(entries) > 0:
@@ -129,6 +131,8 @@ class TINT4LinearWAN(TINT4Linear):
         return out.reshape(*x.shape[:-1], out.shape[-1])
 
     def _apply(self, fn, *args, **kwargs):
+        # 块换入换出前清掉 LoRA GPU 缓存（_vgpu），避免残留设备张量
+        self._flush_vgpu()
         return super()._apply(fn, *args, **kwargs)
 
     def _flush_vgpu(self):
@@ -142,11 +146,13 @@ class TINT4LinearWAN(TINT4Linear):
     def release_xpu(self):
         super().release_xpu()
         self._flush_vgpu()
-        try:
-            torch.xpu.synchronize()
-            torch.xpu.empty_cache()
-        except Exception:
-            pass
+        from .tint4_aimdo import is_aimdo_active
+        if not is_aimdo_active():
+            try:
+                torch.xpu.synchronize()
+                torch.xpu.empty_cache()
+            except Exception:
+                pass
 
 
 def _flush_all_vgpu(dm):
@@ -386,6 +392,48 @@ class TINT4WANLoader:
                     raise
             return None
 
+        # ── 缺失权重占位瘦身（同 tint4_loader_ltx/loader，2026-09-01）──
+        # wan 14B 量化层权重抽走后，comfy 懒加载会补全尺寸 zeros（bf16
+        # ~28GB 临时占用 → 加载期 RAM 峰值 74.5GB）。量化层随后被
+        # TINT4LinearWAN 注入替换，大参数缺失层放 1x1 占位即可。
+        from comfy.ops import disable_weight_init as _dwi
+        _orig_lazy = _dwi._lazy_load_from_state_dict
+
+        def _tiny_lazy_load(module, state_dict, prefix, local_metadata,
+                            missing_keys, unexpected_keys, weight_shape,
+                            bias_shape=None):
+            assign_to_params_buffers = local_metadata.get(
+                "assign_to_params_buffers", False)
+            prefix_len = len(prefix)
+            for k, v in state_dict.items():
+                key = k[prefix_len:]
+                if key == "weight":
+                    if not assign_to_params_buffers:
+                        v = v.clone()
+                    module.weight = torch.nn.Parameter(v, requires_grad=False)
+                elif bias_shape is not None and key == "bias" and v is not None:
+                    if not assign_to_params_buffers:
+                        v = v.clone()
+                    module.bias = torch.nn.Parameter(v, requires_grad=False)
+                else:
+                    unexpected_keys.append(k)
+            if module.weight is None:
+                _params = weight_shape[0] * weight_shape[1]
+                if _params >= 1024 * 1024:
+                    module.weight = torch.nn.Parameter(
+                        torch.zeros((1, 1), dtype=torch.float16),
+                        requires_grad=False)
+                else:
+                    module.weight = torch.nn.Parameter(
+                        torch.zeros(weight_shape), requires_grad=False)
+                missing_keys.append(prefix + "weight")
+            if (bias_shape is not None and module.bias is None
+                    and getattr(module, "comfy_need_lazy_init_bias", False)):
+                module.bias = torch.nn.Parameter(
+                    torch.zeros(bias_shape), requires_grad=False)
+                missing_keys.append(prefix + "bias")
+
+        _dwi._lazy_load_from_state_dict = staticmethod(_tiny_lazy_load)
         comfy.model_detection.detect_unet_config = _detect_wrapper
         try:
             model = comfy.sd.load_diffusion_model_state_dict(
@@ -393,6 +441,7 @@ class TINT4WANLoader:
                 metadata=sd_metadata)
         finally:
             comfy.model_detection.detect_unet_config = _orig_detect
+            _dwi._lazy_load_from_state_dict = _orig_lazy
 
         if model is None:
             raise RuntimeError(
@@ -488,11 +537,13 @@ class TINT4WANLoader:
                     off_idx = idx - keep
                     if off_idx >= 0:
                         blocks[off_idx].to(offload_dev)
-                        try:
-                            torch.xpu.synchronize()
-                            torch.xpu.empty_cache()
-                        except Exception:
-                            pass
+                        from .tint4_aimdo import is_aimdo_active
+                        if not is_aimdo_active():
+                            try:
+                                torch.xpu.synchronize()
+                                torch.xpu.empty_cache()
+                            except Exception:
+                                pass
                 return post_hook
 
             h_pre = blk.register_forward_pre_hook(_make_pre_hook(blk))
@@ -522,11 +573,13 @@ class TINT4WANLoader:
                 if isinstance(m, TINT4LinearWAN):
                     m.release_xpu()
             gc.collect()
-            try:
-                torch.xpu.synchronize()
-                torch.xpu.empty_cache()
-            except Exception:
-                pass
+            from .tint4_aimdo import is_aimdo_active
+            if not is_aimdo_active():
+                try:
+                    torch.xpu.synchronize()
+                    torch.xpu.empty_cache()
+                except Exception:
+                    pass
             return _orig_detach(unpatch_all)
 
         object.__setattr__(model, 'detach', _wan_detach)

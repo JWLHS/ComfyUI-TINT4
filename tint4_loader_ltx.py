@@ -61,11 +61,14 @@ class TINT4LinearLTX(TINT4Linear):
         n = getattr(self, '_fwd_n', 0) + 1
         object.__setattr__(self, '_fwd_n', n)
         if n % 100 == 0:
-            try:
-                torch.xpu.synchronize()
-                torch.xpu.empty_cache()
-            except Exception:
-                pass
+            # AIMDO 让路：活跃时不主动 sync/empty_cache（水位由 AIMDO 管）
+            from .tint4_aimdo import is_aimdo_active
+            if not is_aimdo_active():
+                try:
+                    torch.xpu.synchronize()
+                    torch.xpu.empty_cache()
+                except Exception:
+                    pass
 
         # ── LoRA path ───────────────────────────────────────
         entries = self._tint4_lora_entries
@@ -150,11 +153,13 @@ class TINT4LinearLTX(TINT4Linear):
     def release_xpu(self):
         super().release_xpu()
         self._flush_vgpu()
-        try:
-            torch.xpu.synchronize()
-            torch.xpu.empty_cache()
-        except Exception:
-            pass
+        from .tint4_aimdo import is_aimdo_active
+        if not is_aimdo_active():
+            try:
+                torch.xpu.synchronize()
+                torch.xpu.empty_cache()
+            except Exception:
+                pass
 
 
 def _flush_all_vgpu(dm):
@@ -366,6 +371,52 @@ class TINT4LTX2Loader:
                     raise
             return None
 
+        # ── 缺失权重占位瘦身（AIMDO 懒加载路径）────────────────────
+        # _extract_int4_from_sd 把量化层权重从 sd 抽走后，comfy 的
+        # disable_weight_init 懒加载会对缺失键补全尺寸 zeros（LTX-2 19B
+        # 在 bf16 下实测临时占 ~38-76GB RAM，加载峰值 89GB）。量化层随后
+        # 会被 TINT4LinearLTX 注入替换，这里给大参数缺失层放 1x1 占位，
+        # 注入后即释放，避免加载期 RAM 峰值。
+        from comfy.ops import disable_weight_init as _dwi
+        _orig_lazy = _dwi._lazy_load_from_state_dict
+
+        def _tiny_lazy_load(module, state_dict, prefix, local_metadata,
+                            missing_keys, unexpected_keys, weight_shape,
+                            bias_shape=None):
+            assign_to_params_buffers = local_metadata.get(
+                "assign_to_params_buffers", False)
+            prefix_len = len(prefix)
+            for k, v in state_dict.items():
+                key = k[prefix_len:]
+                if key == "weight":
+                    if not assign_to_params_buffers:
+                        v = v.clone()
+                    module.weight = torch.nn.Parameter(v, requires_grad=False)
+                elif bias_shape is not None and key == "bias" and v is not None:
+                    if not assign_to_params_buffers:
+                        v = v.clone()
+                    module.bias = torch.nn.Parameter(v, requires_grad=False)
+                else:
+                    unexpected_keys.append(k)
+            if module.weight is None:
+                _params = weight_shape[0] * weight_shape[1]
+                if _params >= 1024 * 1024:
+                    # 大参数缺失层：量化层，注入前只需要一个占位
+                    module.weight = torch.nn.Parameter(
+                        torch.zeros((1, 1), dtype=torch.float16),
+                        requires_grad=False)
+                else:
+                    module.weight = torch.nn.Parameter(
+                        torch.zeros(weight_shape), requires_grad=False)
+                missing_keys.append(prefix + "weight")
+            if (bias_shape is not None and module.bias is None
+                    and getattr(module, "comfy_need_lazy_init_bias", False)):
+                module.bias = torch.nn.Parameter(
+                    torch.zeros(bias_shape), requires_grad=False)
+                missing_keys.append(prefix + "bias")
+
+        _dwi._lazy_load_from_state_dict = staticmethod(_tiny_lazy_load)
+
         comfy.model_detection.detect_unet_config = _detect_wrapper
         try:
             model = comfy.sd.load_diffusion_model_state_dict(
@@ -373,6 +424,7 @@ class TINT4LTX2Loader:
                 metadata=sd_metadata)
         finally:
             comfy.model_detection.detect_unet_config = _orig_detect
+            _dwi._lazy_load_from_state_dict = _orig_lazy
 
         dm = model.model.diffusion_model
         while hasattr(dm, '_orig_mod'):
@@ -470,11 +522,13 @@ class TINT4LTX2Loader:
                 if isinstance(m, TINT4LinearLTX):
                     m.release_xpu()
             gc.collect()
-            try:
-                torch.xpu.synchronize()
-                torch.xpu.empty_cache()
-            except Exception:
-                pass
+            from .tint4_aimdo import is_aimdo_active
+            if not is_aimdo_active():
+                try:
+                    torch.xpu.synchronize()
+                    torch.xpu.empty_cache()
+                except Exception:
+                    pass
             return _orig_detach(unpatch_all)
         object.__setattr__(model, 'detach', _ltx_detach)
 

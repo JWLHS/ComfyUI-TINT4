@@ -1,10 +1,11 @@
 
-# TINT4 v1.1 — torchao INT4 Quantized Inference for ComfyUI
+# TINT4 v1.2 — torchao INT4 Quantized Inference for ComfyUI
 
 # > [中文版](README.md)
 
 Built on [torchao](https://github.com/pytorch/ao).  Supports Intel XPU / NVIDIA CUDA / AMD ROCm.
 
+> **v1.2 (AIMDO DLL adaptation)**: Runtime three‑state AIMDO detection (none / hijack / dll), LRU + release yield while AIMDO is active, 1×1 placeholder slimming, immediate bake with CPU‑slowdown fix, VBAR‑safe weight writes. Measured: h3 small params 305→105 s, WAN load RAM peak 74.5→24.6 GB, LTX first step 17→8 s; krea2 / ltx / h3 / wan all run correctly under normal params.
 > **v1.1**: Reliable IS_CHANGED, _lora_needs_reset flag, isolated AIMDO bridge, single‑LoRA chaining, Stack slots 5→8, 🐍 plugin integration.
 
 ---
@@ -102,6 +103,48 @@ All AIMDO logic is extracted into `tint4_aimdo.py`, decoupled from `tint4_loader
 | AIMDO ON + LoRA | No forward hooks → no repeated `_qt` rebuild | Normal speed |
 
 > **Note**: `TINT4Linear` quantization data (`_qdata` / `_scale` / `_zp`) are plain Python attributes, invisible to `named_parameters()`.  VBAR cannot manage them.  `pin_weight` / `unpin_weight` are no‑ops on TINT4Linear (no `_v` attribute); v1.1 removes these ineffective calls.
+
+---
+
+## v1.2 — AIMDO DLL Adaptation
+
+### 1. Three‑state AIMDO detection
+
+`tint4_aimdo.py` now exposes `aimdo_state()` for runtime detection:
+
+| State | Detection | Behavior |
+|-------|-----------|----------|
+| `none` | AIMDO absent / CUDA build only (inactive) | Original self‑managed LRU + explicit release |
+| `hijack` | Hijack build (pure Python, no DLL) | AIMDO yield |
+| `dll` | XPU DLL build (`aimdo_xpu.dll`, `implementation=xpu`) | AIMDO yield |
+| `broken` | DLL loaded but allocator not ready | Falls back to inactive |
+
+### 2. Yield while AIMDO is active
+
+Once the DLL owns VRAM watermarks, the plugin stops evicting/moving quantized layers itself and skips explicit `sync` / `empty_cache`:
+
+- **LRU yield**: `_tint4_touch` returns immediately while AIMDO is active; weights stay resident and AIMDO manages them. Without AIMDO the original LRU behavior is unchanged.
+- **Release yield**: load / unload / block swap / periodic forward cleanup skip explicit `empty_cache` / `synchronize` to avoid fighting the AIMDO allocator.
+- **1×1 placeholder slimming**: `_lazy_load_from_state_dict` puts 1×1 placeholders on quantized missing keys, replaced by `TINT4Linear` after injection. Load RAM peak drops from full‑size zero fill (WAN 74.5 GB / H3 52 GB) to WAN 24.6 GB.
+
+### 3. Immediate bake + VBAR‑safe writes
+
+Bake now runs **immediately at LoRA load time** instead of waiting for the first forward, and fixes two AIMDO‑related issues:
+
+- **CPU slowdown**: the old path moved A/B to CPU when `module.weight` was on CPU, running a 44.4‑billion‑FLOP matmul that stalled ~190 s under AIMDO; it now uses an explicit GPU matmul (milliseconds) and adds the delta back on CPU.
+- **VBAR‑safe writes**: no more in‑place `module.weight.data` mutation (which bypasses VBAR → 0xC0000005 crash and stale cast caches); weights are `clone → add → Parameter replace` and `_prefetch` / `_v_weight` / `_v_bias` / `_v_signature` caches are cleared. Unload/rollback uses the same path.
+- **Eviction log throttling**: LRU logs are aggregated every 5 s or every 100 evicted layers instead of per‑layer spam.
+
+### 4. Measured results (AIMDO DLL, Arc A770 16GB)
+
+| Scenario | Before | After |
+|----------|--------|-------|
+| h3 + turbo LoRA small params | 305–315 s (bake 190 s) | **105 s** |
+| WAN load RAM peak | 74.5 GB | **24.6 GB** |
+| LTX first step | 17 s | **8 s** (total 95 s, VRAM 12.5 GB / RAM 24.3 GB) |
+| Normal params (tint4 + DLL) | — | krea2 32 s / ltx 115 s / h3 593 s / wan 917 s, normal VRAM/RAM |
+
+> Without AIMDO all behavior is identical to v1.1 — the two paths do not interfere.
 
 ---
 
@@ -293,7 +336,10 @@ Supports all model types: `krea2`, `flux2`, `z-image`, `wan`, `boogu`, `qwen`, `
 | `flux2` | ✅ Verified (incl. QuaRot ON models) |
 | `boogu` | ✅ Architecture detection fixed |
 | `z-image` | ✅ LoRA working |
-| `wan` / `ltx2` / `qwen` / `ernie` / `hidream` / `chroma` / `ideogram4` / `anima` | ⚠️ Exclusion lists configured, awaiting community feedback |
+| `wan` | ✅ Dedicated loader, verified under AIMDO DLL |
+| `ltx2` | ✅ Dedicated loader, verified under AIMDO DLL |
+| `minimax_h3` | ✅ Full‑model INT4 quantization + LoRA (adaln E‑grid) verified under AIMDO DLL; `time_embedder` excluded from quantization, `adaln_proj` stays quantized |
+| `qwen` / `ernie` / `hidream` / `chroma` / `ideogram4` / `anima` | ⚠️ Exclusion lists configured, awaiting community feedback |
 | `auto` | Empty exclusion list |
 | All legacy WINT4 models verified; TINT4 quantized models steadily progressing... | |
 

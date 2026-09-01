@@ -1,10 +1,11 @@
 
-# TINT4 v1.1 — torchao INT4 量化推理 for ComfyUI
+# TINT4 v1.2 — torchao INT4 量化推理 for ComfyUI
 
 # > [English](README_EN.md)
 
 基于 [torchao](https://github.com/pytorch/ao) 的模型量化与推理插件。支持 Intel XPU / NVIDIA CUDA / AMD ROCm。
 
+> **v1.2 更新（AIMDO DLL 适配）**：AIMDO 运行时三态检测（none / hijack / dll）、活跃时 LRU 让路 + 释放让路、缺失权重 1×1 占位瘦身、bake 立即执行并修复 AIMDO 下 CPU 慢计算、VBAR 兼容的权重写入。实测：h3 小参数 305→105s、wan 加载 RAM 峰值 74.5→24.6GB、ltx 首步 17→8s，正常参数下 krea2 / ltx / h3 / wan 全部可用。
 > **v1.1 更新**：IS_CHANGED 可靠执行、_lora_needs_reset 标志位、AIMDO 独立适配模块、单 LoRA 串联支持、Stack 槽位扩容至 8 个、🐍 插件接入方案。
 
 ---
@@ -99,6 +100,48 @@ AIMDO 相关逻辑全部提取至 `tint4_aimdo.py`，与 `tint4_loader.py` 解�
 | AIMDO ON + LoRA | 不注册 forward hooks → 不反复重建 `_qt` | 速度正常 |
 
 > **注意**：`TINT4Linear` 的量化权重（`_qdata`/`_scale`/`_zp`）是普通 Python 属性，不在 `named_parameters()` 中，VBAR 无法管理它们。`pin_weight`/`unpin_weight` 对 TINT4 是空操作（无 `_v` 属性），v1.1 已移除这些无效调用。
+
+---
+
+## v1.2 — AIMDO DLL 适配
+
+### 1. AIMDO 三态检测
+
+`tint4_aimdo.py` 新增 `aimdo_state()` 运行时检测，替代原来的布尔判断：
+
+| 状态 | 判定 | 行为 |
+|------|------|------|
+| `none` | 未安装 AIMDO / 仅 CUDA 版（不生效） | 原有自管 LRU + 主动释放 |
+| `hijack` | 劫持版（纯 Python，无 DLL） | AIMDO 让路 |
+| `dll` | XPU DLL 版（`aimdo_xpu.dll`，`implementation=xpu`） | AIMDO 让路 |
+| `broken` | DLL 已加载但分配器未就绪 | 按未启用兜底 |
+
+### 2. AIMDO 活跃时"让路"
+
+DLL 版接管显存水位后，插件不再自行驱逐/搬运量化层，也不再主动 `sync` / `empty_cache`：
+
+- **LRU 驱逐让路**：`_tint4_touch` 在 AIMDO 活跃时直接返回，权重常驻显存由 AIMDO 统一管理。无 AIMDO 时保持原有 LRU 行为不变。
+- **释放让路**：加载、卸载、块换入换出、forward 周期清理均跳过主动 `empty_cache` / `synchronize`，避免与 AIMDO 分配器互相拉扯。
+- **1×1 占位瘦身**：`_lazy_load_from_state_dict` 对量化层缺失键只放 1×1 占位，注入后即被 `TINT4Linear` 替换。加载期 RAM 峰值从全尺寸 zeros 补全的峰值（wan 74.5GB / H3 52GB）降至 wan 24.6GB。
+
+### 3. bake 立即执行 + VBAR 兼容写入
+
+LoRA bake 从"延迟到首次 forward"改为**加载时立即执行**，同时修复 AIMDO 下两类慢/错问题：
+
+- **CPU 慢计算**：原 bake 把 A/B 带上 CPU（`module.weight` 在 CPU 时）做 444 亿 FLOPs matmul，AIMDO 下卡 ~190s；改为显式 GPU matmul（毫秒级）+ delta 转回 CPU add。
+- **VBAR 兼容写入**：不再原地写 `module.weight.data`（绕过 VBAR 管理会 0xC0000005 崩溃且 cast 缓存不失效），改为 `clone → add → 替换 Parameter`，并清理 `_prefetch` / `_v_weight` / `_v_bias` / `_v_signature` 缓存。卸载/回滚同样走该路径。
+- **驱逐日志限频**：LRU 日志从逐层打印改为 5s / 累计 100 层汇总一次，不再刷屏。
+
+### 4. 实测表现（AIMDO DLL 版，Arc A770 16GB）
+
+| 场景 | 修复前 | 修复后 |
+|------|--------|--------|
+| h3 + turbo LoRA 小参数 | 305–315s（bake 190s） | **105s** |
+| wan 加载 RAM 峰值 | 74.5GB | **24.6GB** |
+| ltx 首步 | 17s | **8s**（总 95s，VRAM 12.5GB / RAM 24.3GB） |
+| 正常参数（tint4 + DLL） | — | krea2 32s / ltx 115s / h3 593s / wan 917s，显存内存均正常 |
+
+> 无 AIMDO 时所有行为与 v1.1 完全一致，互不影响。
 
 ---
 
@@ -293,8 +336,10 @@ python analyse_quant.py 模型路径.safetensors 模型类型
 | `flux2` | ✅ 实测通过（含 QuaRot ON 模型） |
 | `boogu` | ✅ 架构检测已修复 |
 | `z-image` | ✅ LoRA 生效正常 |
-| `wan` / `ltx2` / `qwen` / `ernie` / `hidream` / `chroma` / `ideogram4` / `anima` | ⚠️ 排除列表已配置，等待社区反馈 |
-| `minimax_h3` | 🧪 实验性支持：排除列表与 comfy-kitchen INT4_CONVROT 一致，检测复用 ComfyUI 原生实现（待实测） |
+| `wan` | ✅ 专用加载器，AIMDO DLL 下实测通过 |
+| `ltx2` | ✅ 专用加载器，AIMDO DLL 下实测通过 |
+| `minimax_h3` | ✅ 全量底模 INT4 量化 + LoRA（adaln E-grid）实测通过（AIMDO DLL）；`time_embedder` 排除量化，`adaln_proj` 保持量化 |
+| `qwen` / `ernie` / `hidream` / `chroma` / `ideogram4` / `anima` | ⚠️ 排除列表已配置，等待社区反馈 |
 | `auto` | 空白排除列表，按需使用 |
 | 旧win4常用模型全部验证成功，时间原因tint4量化稳步验证推进中....  |
 

@@ -141,10 +141,14 @@ _EXCLUSIONS = {
 	],
 	"minimax_h3": [
 		# MiniMax H3（与 comfy-kitchen INT4_CONVROT 同一排除策略）:
-		# patch 输入/输出、adaLN、norm、rope、token_refiner 保持原精度
-		"bias", "norm", "adaln_proj", "adaln_t_table",
+		# 排除输入投影/输出层/norm/rope/token_refiner 保持原精度；
+		# time_embedder 在 comfy/ldm/minimax/model.py 中全程 fp32 计算，
+		# 量化会触发 fp32 激活 × fp16 权重的 dtype 不匹配（全量底模必崩）。
+		# 注意：adaln_proj 必须量化（50 层 × 96768×2688 ≈ 26GB bf16），
+		# 否则全量底模 int4 体积(≈35GB)反而大于 int8 convrot(31.7GB)。
+		"bias", "norm",
 		"condition_proj", "final_layer", "token_refiner",
-		"patch_proj", "rope",
+		"patch_proj", "rope", "time_embedder",
 	],
 
 	# ── 新增：DiT 架构 ─────────────────────────────────────────────

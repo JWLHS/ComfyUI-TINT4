@@ -211,31 +211,53 @@ def _make_bake_pre_hook(module: nn.Module):
 		cpu = torch.device("cpu")
 		applied = []
 		try:
+			# ── AIMDO vbar 兼容（2026-09-01，对齐 int4xpu 08-27 经验）──
+			# 原地写 module.weight.data 会绕过 AIMDO/VBAR 管理（0xC0000005
+			# 崩溃面），且 bake 后 comfy 的 vbar cast 缓存（_prefetch/
+			# _v_weight/_v_bias/_v_signature）不失效 → bake 不生效或几何
+			# 错位。改为 clone → add → 替换 Parameter，并清 vbar 缓存。
+			w_new = module.weight.detach().clone()
 			for A_cpu, B_cpu, mult, sl, se in pending:
 				if sl is not None and se is not None and B_cpu.shape[0] != (se - sl):
 					B_cpu = B_cpu[sl:se].contiguous()
-				A_gpu = A_cpu.to(device=w_dev, dtype=w_dtype)
-				B_gpu = B_cpu.to(device=w_dev, dtype=w_dtype)
 				# LoRA files disagree on the down/up convention: standard
 				# diffusers saves A=[rank,in], B=[out,rank] (delta = B@A);
 				# some (e.g. minimax_h3_turbo adaln) save A=[in,rank],
 				# B=[out,rank] (delta = B@A.T).  Try the direct product first,
 				# then the transposed fallback.
+				# ── delta 改 CPU 计算（2026-09-01 实测）──
+				# AIMDO 下 bake 的 GPU matmul（B_gpu @ A_gpu）会长时间不返回
+				# （采样前停留 ~190s，py-spy 定位 tint4_lora_loader.py:231）。
+				# A/B 是 LoRA down/up（rank 小），CPU matmul 毫秒级，不经过
+				# GPU/AIMDO 队列。add 到权重仍是 GPU 操作（快）。
 				try:
-					delta_gpu = (B_gpu @ A_gpu).mul_(mult)
-					if delta_gpu.shape != module.weight.shape:
+					delta_cpu = (B_cpu @ A_cpu).mul_(mult)
+					if delta_cpu.shape != module.weight.shape:
 						raise RuntimeError("shape mismatch, retry transposed")
 				except Exception:
-					delta_gpu = (B_gpu @ A_gpu.T).mul_(mult)
+					delta_cpu = (B_cpu @ A_cpu.T).mul_(mult)
 				if sl is not None and se is not None:
-					if delta_gpu.shape[0] != (se - sl):
-						delta_gpu = delta_gpu[sl:se].contiguous()
-					module.weight.data[sl:se].add_(delta_gpu)
+					if delta_cpu.shape[0] != (se - sl):
+						delta_cpu = delta_cpu[sl:se].contiguous()
+					w_new[sl:se].add_(
+						delta_cpu.to(device=w_new.device, dtype=w_new.dtype))
 				else:
-					if delta_gpu.shape[0] != module.weight.shape[0]:
-						delta_gpu = delta_gpu[:module.weight.shape[0]].contiguous()
-					module.weight.data.add_(delta_gpu)
-				applied.append((delta_gpu.to(device=cpu, dtype=torch.float16).clone(), sl, se))
+					if delta_cpu.shape[0] != w_new.shape[0]:
+						delta_cpu = delta_cpu[:w_new.shape[0]].contiguous()
+					w_new.add_(
+						delta_cpu.to(device=w_new.device, dtype=w_new.dtype))
+				applied.append((delta_cpu.to(dtype=torch.float16).clone(), sl, se))
+			module.weight = nn.Parameter(w_new)
+			for _attr in ("_prefetch", "_v_weight", "_v_bias"):
+				try:
+					if hasattr(module, _attr):
+						delattr(module, _attr)
+				except Exception:
+					pass
+			try:
+				module._v_signature = None
+			except Exception:
+				pass
 		except Exception as e:
 			log.warning(
 				f"[TINT4 LoRA] bake pre-hook failed: {e} | "
@@ -447,15 +469,28 @@ class TINT4LoRALoader:
 		if bs is not None:
 			applied = bs.pop('_applied', None)
 			if applied is not None and hasattr(module, 'weight') and module.weight is not None:
+				# AIMDO vbar 兼容：回滚同样不原地写，clone → add → 替换 + 清缓存
+				w_new = module.weight.detach().clone()
 				for delta_cpu, sl, se in applied:
 					try:
 						neg = (-delta_cpu).to(device=module.weight.device, dtype=module.weight.dtype)
 						if sl is not None and se is not None:
-							module.weight.data[sl:se].add_(neg)
+							w_new[sl:se].add_(neg)
 						else:
-							module.weight.data.add_(neg)
+							w_new.add_(neg)
 					except Exception:
 						pass
+				module.weight = nn.Parameter(w_new)
+				for _attr in ("_prefetch", "_v_weight", "_v_bias"):
+					try:
+						if hasattr(module, _attr):
+							delattr(module, _attr)
+					except Exception:
+						pass
+				try:
+					module._v_signature = None
+				except Exception:
+					pass
 			bs.pop(lora_name, None)
 			bs.pop('_pending', None)
 			hh = bs.pop('_hook_handle', None)
@@ -501,21 +536,77 @@ class TINT4LoRALoader:
 		rank = up.shape[1] if up.ndim >= 2 else 1
 		mult_base = (alpha_val / max(rank, 1)) if alpha_val else 1.0
 		mult = mult_base * strength
-
-		bs = getattr(module, '_tint4_bake_state', None)
-		if bs is None:
-			bs = {}
-			object.__setattr__(module, '_tint4_bake_state', bs)
-		pending = bs.get('_pending')
-		if pending is None:
-			pending = []
-			bs['_pending'] = pending
 		sl = qkv_slice[0] if qkv_slice else None
 		se = qkv_slice[1] if qkv_slice else None
-		pending.append((A, B, mult, sl, se))
-		if '_hook_handle' not in bs:
-			hook = module.register_forward_pre_hook(_make_bake_pre_hook(module))
-			bs['_hook_handle'] = hook
+		# ── 立即 bake（2026-09-01）：不再延迟到首次 forward ──
+		# 原设计把 bake 放到 forward pre-hook，采样器前的 preprocess_text_embeds
+		# 触发它 → GPU delta 计算卡 ~190s（py-spy 定位）。改在 LoRA 加载时
+		# 立即算好并写进权重，采样阶段不再有 bake 计算。vbar 兼容：clone →
+		# add → 替换 Parameter + 清缓存；记录 _applied 供卸载回滚。
+		try:
+			# AIMDO 水位让路前的临时释放：bake 的 GPU 分配在 AIMDO 认为
+			# 显存满（get_total_vram_usage≈10GB）时走保守路径 → matmul 慢
+			# 2-50s/次。bake 前清一次缓存，恢复水位后 matmul 毫秒级。
+			try:
+				from comfy_aimdo import control as _ac
+				_ok = _ac.empty_xpu_allocator_cache(wait=True)
+				log.info(
+					"[TINT4 LoRA] bake pre-empty ok=%s vram_after=%.0fMB",
+					_ok, _ac.get_total_vram_usage())
+			except Exception:
+				pass
+			# ── 立即 bake：delta 强制 GPU 算（2026-09-01 实测根因）──
+			# bake 时 module.weight 在 CPU（tint4 权重惰性上传），原代码
+			# .to(device=w_new.device) 把 A/B 也带到 CPU → 444 亿 FLOPs 的
+			# matmul 在 CPU 跑 7-108s。改为显式 .to("xpu")，GPU matmul
+			# 毫秒级，delta 转回 CPU add 到权重。
+			w_new = module.weight.detach().clone()
+			_dev_gpu = torch.device("xpu")
+			A_gpu = A.to(device=_dev_gpu, dtype=torch.float16)
+			B_gpu = B.to(device=_dev_gpu, dtype=torch.float16)
+			try:
+				delta = (B_gpu @ A_gpu).mul_(mult)
+				if delta.shape != module.weight.shape:
+					raise RuntimeError("shape mismatch, retry transposed")
+			except Exception:
+				delta = (B_gpu @ A_gpu.T).mul_(mult)
+			delta = delta.to(device="cpu", dtype=w_new.dtype)
+			if sl is not None and se is not None:
+				if delta.shape[0] != (se - sl):
+					delta = delta[sl:se].contiguous()
+				w_new[sl:se].add_(delta)
+			else:
+				if delta.shape[0] != w_new.shape[0]:
+					delta = delta[:w_new.shape[0]].contiguous()
+				w_new.add_(delta)
+			module.weight = nn.Parameter(w_new)
+			for _attr in ("_prefetch", "_v_weight", "_v_bias"):
+				try:
+					if hasattr(module, _attr):
+						delattr(module, _attr)
+				except Exception:
+					pass
+			try:
+				module._v_signature = None
+			except Exception:
+				pass
+			bs = getattr(module, '_tint4_bake_state', None)
+			if bs is None:
+				bs = {}
+				object.__setattr__(module, '_tint4_bake_state', bs)
+			bs['_applied'] = [(delta.to(dtype=torch.float16).clone(), sl, se)]
+			bs.pop('_pending', None)
+			hh = bs.pop('_hook_handle', None)
+			if hh is not None:
+				try:
+					hh.remove()
+				except Exception:
+					pass
+		except Exception as e:
+			log.warning(
+				f"[TINT4 LoRA] bake immediate failed: {e} | "
+				f"mod={type(module).__name__} w={tuple(module.weight.shape)}"
+			)
 
 	def _inject_lokr(
 		self, module, lora_name, w1, w2, alpha_val,

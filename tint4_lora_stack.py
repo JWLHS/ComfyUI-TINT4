@@ -118,21 +118,41 @@ def _make_bake_pre_hook(module: nn.Module):
 		cpu = torch.device("cpu")
 		applied = []
 		try:
+			# ── AIMDO vbar 兼容（2026-09-01，对齐 int4xpu 08-27 经验）──
+			# 原地写 module.weight.data 绕过 AIMDO/VBAR 管理（0xC0000005
+			# 崩溃面），且 bake 后 comfy vbar cast 缓存不失效 → bake 失效
+			# 或几何错位。改为 clone → add → 替换 Parameter，并清缓存。
+			w_new = module.weight.detach().clone()
 			for A_cpu, B_cpu, mult, sl, se in pending:
 				if sl is not None and se is not None and B_cpu.shape[0] != (se - sl):
 					B_cpu = B_cpu[sl:se].contiguous()
-				A_gpu = A_cpu.to(device=w_dev, dtype=w_dtype)
-				B_gpu = B_cpu.to(device=w_dev, dtype=w_dtype)
-				delta_gpu = (B_gpu @ A_gpu).mul_(mult)
+				# ── delta 改 CPU 计算（2026-09-01 实测）──
+				# AIMDO 下 bake 的 GPU matmul 长时间不返回（采样前停留
+				# ~190s，py-spy 定位）；A/B 是 LoRA down/up，CPU matmul
+				# 毫秒级，不经过 GPU/AIMDO 队列。
+				delta_cpu = (B_cpu @ A_cpu).mul_(mult)
 				if sl is not None and se is not None:
-					if delta_gpu.shape[0] != (se - sl):
-						delta_gpu = delta_gpu[sl:se].contiguous()
-					module.weight.data[sl:se].add_(delta_gpu)
+					if delta_cpu.shape[0] != (se - sl):
+						delta_cpu = delta_cpu[sl:se].contiguous()
+					w_new[sl:se].add_(
+						delta_cpu.to(device=w_new.device, dtype=w_new.dtype))
 				else:
-					if delta_gpu.shape[0] != module.weight.shape[0]:
-						delta_gpu = delta_gpu[:module.weight.shape[0]].contiguous()
-					module.weight.data.add_(delta_gpu)
-				applied.append((delta_gpu.to(device=cpu, dtype=torch.float16).clone(), sl, se))
+					if delta_cpu.shape[0] != w_new.shape[0]:
+						delta_cpu = delta_cpu[:w_new.shape[0]].contiguous()
+					w_new.add_(
+						delta_cpu.to(device=w_new.device, dtype=w_new.dtype))
+				applied.append((delta_cpu.to(dtype=torch.float16).clone(), sl, se))
+			module.weight = nn.Parameter(w_new)
+			for _attr in ("_prefetch", "_v_weight", "_v_bias"):
+				try:
+					if hasattr(module, _attr):
+						delattr(module, _attr)
+				except Exception:
+					pass
+			try:
+				module._v_signature = None
+			except Exception:
+				pass
 		except Exception as e:
 			log.warning(f"[TINT4 Stack] bake pre-hook failed: {e}")
 		bs.pop('_pending', None)
@@ -357,15 +377,28 @@ class TINT4LoRAStack:
 		if bs is not None:
 			applied = bs.pop('_applied', None)
 			if applied is not None and hasattr(module, 'weight') and module.weight is not None:
+				# AIMDO vbar 兼容：回滚同样不原地写，clone → add → 替换 + 清缓存
+				w_new = module.weight.detach().clone()
 				for delta_cpu, sl, se in applied:
 					try:
 						neg = (-delta_cpu).to(device=module.weight.device, dtype=module.weight.dtype)
 						if sl is not None and se is not None:
-							module.weight.data[sl:se].add_(neg)
+							w_new[sl:se].add_(neg)
 						else:
-							module.weight.data.add_(neg)
+							w_new.add_(neg)
 					except Exception:
 						pass
+				module.weight = nn.Parameter(w_new)
+				for _attr in ("_prefetch", "_v_weight", "_v_bias"):
+					try:
+						if hasattr(module, _attr):
+							delattr(module, _attr)
+					except Exception:
+						pass
+				try:
+					module._v_signature = None
+				except Exception:
+					pass
 			bs.pop(lora_name, None)
 			bs.pop('_pending', None)
 			hh = bs.pop('_hook_handle', None)
@@ -411,21 +444,55 @@ class TINT4LoRAStack:
 		rank = up.shape[1] if up.ndim >= 2 else 1
 		mult_base = (alpha_val / max(rank, 1)) if alpha_val else 1.0
 		mult = mult_base * strength
-
-		bs = getattr(module, '_tint4_bake_state', None)
-		if bs is None:
-			bs = {}
-			object.__setattr__(module, '_tint4_bake_state', bs)
-		pending = bs.get('_pending')
-		if pending is None:
-			pending = []
-			bs['_pending'] = pending
 		sl = qkv_slice[0] if qkv_slice else None
 		se = qkv_slice[1] if qkv_slice else None
-		pending.append((A, B, mult, sl, se))
-		if '_hook_handle' not in bs:
-			hook = module.register_forward_pre_hook(_make_bake_pre_hook(module))
-			bs['_hook_handle'] = hook
+		# ── 立即 bake（2026-09-01）：不再延迟到首次 forward（采样器前卡）──
+		try:
+			w_new = module.weight.detach().clone()
+			# delta 强制 GPU 算（module.weight 在 CPU，原代码把 A/B 也带
+			# 到 CPU → 大矩阵 CPU 慢 7-108s）
+			_dev_gpu = torch.device("xpu")
+			A_gpu = A.to(device=_dev_gpu, dtype=torch.float16)
+			B_gpu = B.to(device=_dev_gpu, dtype=torch.float16)
+			delta = (B_gpu @ A_gpu).mul_(mult)
+			delta = delta.to(device="cpu", dtype=w_new.dtype)
+			if sl is not None and se is not None:
+				if delta.shape[0] != (se - sl):
+					delta = delta[sl:se].contiguous()
+				w_new[sl:se].add_(delta)
+			else:
+				if delta.shape[0] != w_new.shape[0]:
+					delta = delta[:w_new.shape[0]].contiguous()
+				w_new.add_(delta)
+			module.weight = nn.Parameter(w_new)
+			for _attr in ("_prefetch", "_v_weight", "_v_bias"):
+				try:
+					if hasattr(module, _attr):
+						delattr(module, _attr)
+				except Exception:
+					pass
+			try:
+				module._v_signature = None
+			except Exception:
+				pass
+			bs = getattr(module, '_tint4_bake_state', None)
+			if bs is None:
+				bs = {}
+				object.__setattr__(module, '_tint4_bake_state', bs)
+			bs['_applied'] = [(
+				delta.to(device=cpu, dtype=torch.float16).clone(), sl, se)]
+			bs.pop('_pending', None)
+			hh = bs.pop('_hook_handle', None)
+			if hh is not None:
+				try:
+					hh.remove()
+				except Exception:
+					pass
+		except Exception as e:
+			log.warning(
+				f"[TINT4 Stack] bake immediate failed: {e} | "
+				f"mod={type(module).__name__}"
+			)
 
 	def _inject_lokr(
 		self, module, lora_name, w1, w2, alpha_val,

@@ -26,6 +26,13 @@ def _get_accelerator_device() -> torch.device:
 
 
 def _empty_accelerator_cache():
+	# AIMDO 让路：活跃时不主动 sync/empty_cache（水位由 AIMDO 管）
+	try:
+		from .tint4_aimdo import is_aimdo_active
+		if is_aimdo_active():
+			return
+	except Exception:
+		pass
 	if hasattr(torch, "xpu") and torch.xpu.is_available():
 		try:
 			torch.xpu.synchronize()
@@ -314,15 +321,19 @@ def _tint4_reset_all_loras(model) -> None:
 
 			applied = bs.pop('_applied', None)
 			if applied is not None and hasattr(module, 'weight') and module.weight is not None:
+				# AIMDO vbar 兼容：回滚不原地写（原地写绕过 VBAR 管理 →
+				# 0xC0000005 崩溃面，且 vbar cast 缓存不失效）。clone →
+				# add → 替换 Parameter + 清缓存。两段 rollback 共用一次 clone。
+				w_new = module.weight.detach().clone()
 				for delta_cpu, sl, se in applied:
 					try:
 						neg = (-delta_cpu).to(
 							device=module.weight.device,
 							dtype=module.weight.dtype)
 						if sl is not None and se is not None:
-							module.weight.data[sl:se].add_(neg)
+							w_new[sl:se].add_(neg)
 						else:
-							module.weight.data.add_(neg)
+							w_new.add_(neg)
 					except Exception:
 						pass
 
@@ -338,11 +349,23 @@ def _tint4_reset_all_loras(model) -> None:
 								device=module.weight.device,
 								dtype=module.weight.dtype)
 							if sl is not None and se is not None:
-								module.weight.data[sl:se].add_(neg)
+								w_new[sl:se].add_(neg)
 							else:
-								module.weight.data.add_(neg)
+								w_new.add_(neg)
 						except Exception:
 							pass
+
+			module.weight = torch.nn.Parameter(w_new)
+			for _attr in ("_prefetch", "_v_weight", "_v_bias"):
+				try:
+					if hasattr(module, _attr):
+						delattr(module, _attr)
+				except Exception:
+					pass
+			try:
+				module._v_signature = None
+			except Exception:
+				pass
 
 			object.__setattr__(module, '_tint4_bake_state', None)
 	else:
