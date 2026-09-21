@@ -116,6 +116,15 @@ def build_weight_placeholders(quant_specs, sd):
         if _base in ("blocks.0.attn.qkv_proj", "blocks.0.mlp.fc1"):
             _chosen.append((_base, _sh0, _sh1))
     _seen = set()
+    # Qwen Image 2.1：ComfyUI 的架构检测要求 transformer_blocks.0.img_mlp
+    # .{gate_up,proj}.weight 存在（只读 shape[0]），而它们都是量化层、会被
+    # 前缀去重挤掉 → 检测返回 None → 建模型失败（实测 'NoneType' object
+    # has no attribute 'model'）。这里强制纳入占位符（同 H3 的处理）。
+    _qwen_detect = ("transformer_blocks.0.img_mlp.gate_up",
+                    "transformer_blocks.0.img_mlp.proj")
+    for _base, _sh0, _sh1 in _specs_sorted:
+        if _base in _qwen_detect:
+            _chosen.append((_base, _sh0, _sh1))
     for _base, _sh0, _sh1 in _specs_sorted:
         if (_base, _sh0, _sh1) in _chosen:
             continue

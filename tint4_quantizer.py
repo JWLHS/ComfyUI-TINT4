@@ -90,6 +90,8 @@ _EXCLUSIONS = {
 		"norm_out", "proj_out", "txt_in",
 		"norm_added_k", "norm_added_q", "norm_k", "norm_q",
 		"txt_norm", "transformer_blocks.0.img_mod.1",
+		# Qwen Image 2.1：顶层共享 adaLN modulation.1（驱动全部 32 个 block）保留原精度
+		"modulation",
 	],
 	"ernie": [
 		"time", "x_embedder", "adaLN", "final",

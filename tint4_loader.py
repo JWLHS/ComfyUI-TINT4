@@ -298,6 +298,11 @@ class TINT4Linear(nn.Module):
 		self._onednn_scales: torch.Tensor | None = None
 		self._onednn_corr: torch.Tensor | None = None
 		self._use_onednn: bool = os.environ.get("TINT4_ONEDNN", "0") == "1"
+		# comfy 0.36 的 Linear 接口面：comfy.ops.linear_input_act 与 OmniXPU 的
+		# fp8_gemm 适配器都会读 len(weight_function)（Qwen Image 2.1 的 SwiGLU
+		# 走 linear_input_act），缺属性会 AttributeError 中断采样。
+		self.weight_function = []
+		self.bias_function = []
 
 	def __del__(self):
 		try:
