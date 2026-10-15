@@ -14,6 +14,9 @@
 
 # 一些量化后的模型和示例工作流，持续添加...
 ### https://pan.quark.cn/s/a324b2c9881b
+### https://pan.baidu.com/s/5RhTt43qkz3CxNw8wbZBIDQ 
+(因为上传速度受到限制，后续模型都放到度盘里，如果链接挂了记得留言)
+
 
 ---
 
