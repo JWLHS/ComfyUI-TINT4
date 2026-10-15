@@ -6,6 +6,7 @@
 基于 [torchao](https://github.com/pytorch/ao) 的模型量化与推理插件。支持 Intel XPU / NVIDIA CUDA / AMD ROCm。
 
 > **v1.3 更新（Flux.3 Klein 支持）**：新增 `flux3` 架构（f3-image-small：3072 隐层、43 块 = single_blocks 28 + content_mode_blocks 10 + txt_mode_blocks 5，q/k/v 分开不融合）。排除 `emb_in / time_in / ref_time_in / txt_in / final_layer / stream_modulations`，其余 258 层全量量化。实测（A770 + torch 2.13，同 prompt/seed/8 步/1024²）：蒸馏版 3.08GB、非蒸馏版 3.06GB；与 bf16 的像素差 16.7 / 10.0（同口径 wa4 为 17.1 / 11.8、int8 为 2.4）；加载 `Config: Flux3`、258 层全部注入。
+> 　 flux3 经 **TINT4 自家加载器**实测通过：`Loading (type=flux3)` → `258 quant layers, 107 sd keys (6 weight placeholders)` → `Injected 258 TINT4Linear layers`，AIMDO DLL 状态下 `state=dll — detach wrapper active`、出图正常。**无需**为 flux3 增加 qwen2.1 那样的架构检测键白名单（其检测键 `content_mode_blocks.image.0.attn_out` / `single_stream_modulations.txt.lin` 未被前缀去重挤掉）。
 > **v1.2 更新（AIMDO DLL 适配）**：AIMDO 运行时三态检测（none / hijack / dll）、活跃时 LRU 让路 + 释放让路、缺失权重 1×1 占位瘦身、bake 立即执行并修复 AIMDO 下 CPU 慢计算、VBAR 兼容的权重写入。实测：h3 小参数 305→105s、wan 加载 RAM 峰值 74.5→24.6GB、ltx 首步 17→8s，正常参数下 krea2 / ltx / h3 / wan 全部可用。
 > **v1.1 更新**：IS_CHANGED 可靠执行、_lora_needs_reset 标志位、AIMDO 独立适配模块、单 LoRA 串联支持、Stack 槽位扩容至 8 个、🐍 插件接入方案。
 
