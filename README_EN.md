@@ -1,10 +1,11 @@
 
-# TINT4 v1.2 — torchao INT4 Quantized Inference for ComfyUI
+# TINT4 v1.3 — torchao INT4 Quantized Inference for ComfyUI
 
 # > [中文版](README.md)
 
 Built on [torchao](https://github.com/pytorch/ao).  Supports Intel XPU / NVIDIA CUDA / AMD ROCm.
 
+> **v1.3 (Flux.3 Klein support)**: new `flux3` architecture (f3-image-small: 3072 hidden, 43 blocks = 28 single + 10 content-mode + 5 txt-mode, separate q/k/v). Excludes `emb_in / time_in / ref_time_in / txt_in / final_layer / stream_modulations`; the remaining 258 layers are quantized. Measured on A770 + torch 2.13 (same prompt/seed/8 steps/1024²): 3.08 GB distilled / 3.06 GB non-distilled; pixel distance to bf16 16.7 / 10.0 (wa4 17.1 / 11.8, int8 2.4 on the same setup); loads as `Config: Flux3` with all 258 layers injected.
 > **v1.2 (AIMDO DLL adaptation)**: Runtime three‑state AIMDO detection (none / hijack / dll), LRU + release yield while AIMDO is active, 1×1 placeholder slimming, immediate bake with CPU‑slowdown fix, VBAR‑safe weight writes. Measured: h3 small params 305→105 s, WAN load RAM peak 74.5→24.6 GB, LTX first step 17→8 s; krea2 / ltx / h3 / wan all run correctly under normal params.
 > **v1.1**: Reliable IS_CHANGED, _lora_needs_reset flag, isolated AIMDO bridge, single‑LoRA chaining, Stack slots 5→8, 🐍 plugin integration.
 
@@ -285,7 +286,7 @@ The quantizer auto‑overrides to `group_size=32` (log: `[TINT4] Boogu: overridi
 python analyse_quant.py model.safetensors model_type
 ```
 
-Supports all model types: `krea2`, `flux2`, `z-image`, `wan`, `boogu`, `qwen`, `ernie`, `hidream`, `ltx2`, `chroma`, `ideogram4`, `anima`, `auto`.
+Supports all model types: `krea2`, `flux2`, `flux3`, `z-image`, `wan`, `boogu`, `qwen`, `ernie`, `hidream`, `ltx2`, `chroma`, `ideogram4`, `anima`, `auto`.
 
 ---
 
@@ -334,6 +335,7 @@ Supports all model types: `krea2`, `flux2`, `z-image`, `wan`, `boogu`, `qwen`, `
 |---|---|
 | `krea2` | ✅ Verified (LoRA fully functional) |
 | `flux2` | ✅ Verified (incl. QuaRot ON models) |
+| `flux3` | ✅ Verified (Flux.3 Klein, distilled / non-distilled; gs=128 without QuaRot, 258 layers, 3.08 / 3.06 GB) |
 | `boogu` | ✅ Architecture detection fixed |
 | `z-image` | ✅ LoRA working |
 | `wan` | ✅ Dedicated loader, verified under AIMDO DLL |

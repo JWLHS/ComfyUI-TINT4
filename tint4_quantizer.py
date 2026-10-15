@@ -56,6 +56,13 @@ _EXCLUSIONS = {
 		"double_stream_modulation_img", "double_stream_modulation_txt",
 		"single_stream_modulation",
 	],
+	"flux3": [
+		# Flux.3 Klein（f3-image-small）：3072 隐层、43 块（single_blocks 28 +
+		# content_mode_blocks 10 + txt_mode_blocks 5），q/k/v 分开不融合。
+		# 输入/时间/文本投影、调制层、输出层保持原精度（与 flux2 同策略）。
+		"emb_in", "time_in", "ref_time_in", "txt_in",
+		"final_layer", "stream_modulations",
+	],
 	"z-image": [
 		"cap_embedder", "t_embedder", "x_embedder", "cap_pad_token",
 		"context_refiner", "final_layer", "noise_refiner", "adaLN",
@@ -215,6 +222,7 @@ MODEL_TYPES = [
 	"flux2 (Flux.2)",
 	"flux (Flux.1 dev/schnell)",
 	"sd3 (SD3 / SD3.5)",
+	"flux3 (Flux.3 Klein)",
 	"hunyuan_video (Hunyuan Video)",
 	"hunyuan3d (Hunyuan3D 2.x)",
 	"minimax_h3 (MiniMax H3)",
