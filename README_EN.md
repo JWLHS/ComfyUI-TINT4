@@ -1,10 +1,11 @@
 
-# TINT4 v1.3 — torchao INT4 Quantized Inference for ComfyUI
+# TINT4 v1.4 — torchao INT4 Quantized Inference for ComfyUI
 
 # > [中文版](README.md)
 
 Built on [torchao](https://github.com/pytorch/ao).  Supports Intel XPU / NVIDIA CUDA / AMD ROCm.
 
+> **v1.4 (MOSS-Image support)**: new `moss_image` architecture (OpenMOSS 5B base DiT, released 2026-10-16; 3072 hidden / 42 blocks, each block having fused `proj.{qkv, o, ffn_up_gate, ffn_down}` Linears without bias). Excludes `video_embedder / text_embedder / time_embedding / shared_block_modulation / video_head_modulation / final_linear_video`; the remaining **168 layers** are quantized. Measured on A770 + torch 2.13 (gs=128, no QuaRot): a 9.47 GiB source becomes **2.93 GiB** for both distilled and base; per-layer relative error **0.1031** (qwen2.1 0.1129 / flux3 0.1116 on the same scale). Inference was verified this round through **int4XPUModelLoader** (30 steps at cfg=3, 1024², same seed, 73.9 s); the **TINT4 loader itself has not been tested yet** for this architecture.
 > **v1.3 (Flux.3 Klein support)**: new `flux3` architecture (f3-image-small: 3072 hidden, 43 blocks = 28 single + 10 content-mode + 5 txt-mode, separate q/k/v). Excludes `emb_in / time_in / ref_time_in / txt_in / final_layer / stream_modulations`; the remaining 258 layers are quantized. Measured on A770 + torch 2.13 (same prompt/seed/8 steps/1024²): 3.08 GB distilled / 3.06 GB non-distilled; pixel distance to bf16 16.7 / 10.0 (wa4 17.1 / 11.8, int8 2.4 on the same setup); loads as `Config: Flux3` with all 258 layers injected.
 >   flux3 also verified through the **TINT4 loader itself**: `Loading (type=flux3)` → `258 quant layers, 107 sd keys (6 weight placeholders)` → `Injected 258 TINT4Linear layers`, with `[TINT4 AIMDO] state=dll — detach wrapper active` and a successful generation. **No** qwen2.1-style architecture-detection key allowlist is needed for flux3 (its detection keys `content_mode_blocks.image.0.attn_out` / `single_stream_modulations.txt.lin` survive prefix de-duplication).
 > **v1.2 (AIMDO DLL adaptation)**: Runtime three‑state AIMDO detection (none / hijack / dll), LRU + release yield while AIMDO is active, 1×1 placeholder slimming, immediate bake with CPU‑slowdown fix, VBAR‑safe weight writes. Measured: h3 small params 305→105 s, WAN load RAM peak 74.5→24.6 GB, LTX first step 17→8 s; krea2 / ltx / h3 / wan all run correctly under normal params.
@@ -287,7 +288,7 @@ The quantizer auto‑overrides to `group_size=32` (log: `[TINT4] Boogu: overridi
 python analyse_quant.py model.safetensors model_type
 ```
 
-Supports all model types: `krea2`, `flux2`, `flux3`, `z-image`, `wan`, `boogu`, `qwen`, `ernie`, `hidream`, `ltx2`, `chroma`, `ideogram4`, `anima`, `auto`.
+Supports all model types: `krea2`, `flux2`, `flux3`, `moss_image`, `z-image`, `wan`, `boogu`, `qwen`, `ernie`, `hidream`, `ltx2`, `chroma`, `ideogram4`, `anima`, `auto`.
 
 ---
 
@@ -337,6 +338,7 @@ Supports all model types: `krea2`, `flux2`, `flux3`, `z-image`, `wan`, `boogu`, 
 | `krea2` | ✅ Verified (LoRA fully functional) |
 | `flux2` | ✅ Verified (incl. QuaRot ON models) |
 | `flux3` | ✅ Verified (Flux.3 Klein, distilled / non-distilled; gs=128 without QuaRot, 258 layers, 3.08 / 3.06 GB) |
+| `moss_image` | ✅ Quantization + inference verified (MOSS-Image SFT / Base; gs=128 without QuaRot, 168 layers, 2.93 GB each; inference via int4XPUModelLoader, TINT4 loader not tested yet) |
 | `boogu` | ✅ Architecture detection fixed |
 | `z-image` | ✅ LoRA working |
 | `wan` | ✅ Dedicated loader, verified under AIMDO DLL |

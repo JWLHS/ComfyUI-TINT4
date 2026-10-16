@@ -212,6 +212,15 @@ _EXCLUSIONS = {
 		# SeedVR 2: x_embedder 是 patch embedding
 		"x_embedder", "final_layer",
 	],
+	"moss_image": [
+		# MOSS-Image（OpenMOSS 5B base DiT，2026-10-16 发布）：3072 隐层 / 42 块，
+		# 每块 proj.{qkv, o, ffn_up_gate, ffn_down} 全部融合 Linear、无 bias。
+		# 输入/时间投影、共享 adaLN（shared_block_modulation）、head 调制与输出层
+		# 保持原精度（与 flux2/flux3 同一策略）；text_embedder 是文本渲染/排版
+		# 能力所在（2 个文本块 + proj，约 239M 参数），同样不量化。
+		"video_embedder", "text_embedder", "time_embedding",
+		"shared_block_modulation", "video_head_modulation", "final_linear_video",
+	],
 
 	"auto": [],
 }
@@ -251,6 +260,7 @@ MODEL_TYPES = [
 	"krea2 (Krea 2)",
 	"ideogram4 (Ideogram 4)",
 	"anima (Anima / Cosmos Predict2)",
+	"moss_image (MOSS-Image)",
 	# ── 兜底 ──
 	"auto (Auto-detect)",
 ]
