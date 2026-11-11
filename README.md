@@ -1,10 +1,11 @@
 
-# TINT4 v1.5 — torchao INT4 量化推理 for ComfyUI
+# TINT4 v1.6 — torchao INT4 量化推理 for ComfyUI
 
 # > [English](README_EN.md)
 
 基于 [torchao](https://github.com/pytorch/ao) 的模型量化与推理插件。支持 Intel XPU / NVIDIA CUDA / AMD ROCm。
 
+> **v1.6 更新（MiniMax H3 Image 支持）**：新增 `h3_image` 架构。该模型是 50 块、无 audio stream 的 H3 图像 DiT；只量化每块 `qkv_proj / out_proj / fc1 / fc2` 共 200 层，`condition_proj / token_refiner / final_layer / video_patch_proj / adaln_proj` 保持原精度。40.23GiB bf16 → **10.98GiB TINT4**；1024² 六步文生图、参考图编辑和 int4XPUModelLoader 互通均已实测通过。量化层现在全部使用 1×1 占位符，消除了加载时的伪 `unet missing` 警告。
 > **v1.5 更新（Fibo 2.0 支持）**：新增 `fibo2` 架构（Bria，8.226B 单流 DiT：3584 隐层 / 44 主块 + 2 个 noise_refiner，FFN 为融合 `w13`（w1+w3）SwiGLU，第 6/14/22/30/38 层带 cross-attention 注入）。排除 `x_embedder / t_embedder / final_layer / adaLN_modulation / perceiver`，其余 **199 层**量化。gs=128 无 QuaRot：Dev 与 Edit Turbo 各 15.32 GiB 源 → **各 4.90 GiB**；逐层误差与 wa4（4.96 GiB）同级。本次推理侧用 **int4XPUModelLoader** 实测（Turbo 4 步 cfg=1、Dev 20 步 cfg=3，均通过），**TINT4 自家加载器尚未测**。
 > **v1.4 更新（MOSS-Image 支持）**：新增 `moss_image` 架构（OpenMOSS 5B base DiT，2026-10-16 发布；3072 隐层 / 42 块，每块 `proj.{qkv, o, ffn_up_gate, ffn_down}` 全部是融合 Linear、无 bias）。排除 `video_embedder / text_embedder / time_embedding / shared_block_modulation / video_head_modulation / final_linear_video`，其余 **168 层**全量量化。实测（A770 + torch 2.13，gs=128 无 QuaRot）：蒸馏版 / base 各 9.47 GiB 源 → **各 2.93 GiB**；逐层量化相对误差 **0.1031**（对照 qwen2.1 0.1129 / flux3 0.1116，同口径）。推理侧本次用 **int4XPUModelLoader** 实测通过（30 步 cfg=3 1024² 同 seed，73.9s），**TINT4 自家加载器尚未测**。
 > **v1.3 更新（Flux.3 Klein 支持）**：新增 `flux3` 架构（f3-image-small：3072 隐层、43 块 = single_blocks 28 + content_mode_blocks 10 + txt_mode_blocks 5，q/k/v 分开不融合）。排除 `emb_in / time_in / ref_time_in / txt_in / final_layer / stream_modulations`，其余 258 层全量量化。实测（A770 + torch 2.13，同 prompt/seed/8 步/1024²）：蒸馏版 3.08GB、非蒸馏版 3.06GB；与 bf16 的像素差 16.7 / 10.0（同口径 wa4 为 17.1 / 11.8、int8 为 2.4）；加载 `Config: Flux3`、258 层全部注入。
@@ -349,6 +350,7 @@ python analyse_quant.py 模型路径.safetensors 模型类型
 | `wan` | ✅ 专用加载器，AIMDO DLL 下实测通过 |
 | `ltx2` | ✅ 专用加载器，AIMDO DLL 下实测通过 |
 | `minimax_h3` | ✅ 全量底模 INT4 量化 + LoRA（adaln E-grid）实测通过（AIMDO DLL）；`time_embedder` 排除量化，`adaln_proj` 保持量化 |
+| `h3_image` | ✅ 量化 + 文生图 + 参考图编辑实测通过（50 块 / 200 层；40.23GiB bf16 → 10.98GiB；TINT4 与 int4XPUModelLoader 均通过） |
 | `qwen` / `ernie` / `hidream` / `chroma` / `ideogram4` / `anima` | ⚠️ 排除列表已配置，等待社区反馈 |
 | `auto` | 空白排除列表，按需使用 |
 | 旧win4常用模型全部验证成功，时间原因tint4量化稳步验证推进中....  |

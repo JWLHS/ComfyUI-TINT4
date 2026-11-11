@@ -1,5 +1,5 @@
 """
-tint4_quantizer.py — TINT4 Model Quantizer  v8.1
+tint4_quantizer.py — TINT4 Model Quantizer  v8.6
 
 Offline: fp16/bf16/int8 → optional QuaRot rotation → torchao INT4 → safetensors
 
@@ -159,6 +159,14 @@ _EXCLUSIONS = {
 		"condition_proj", "final_layer", "token_refiner",
 		"patch_proj", "rope", "time_embedder",
 	],
+	"h3_image": [
+		# MiniMax-H3-Image: H3 DiT without audio. Quantize the four main
+		# linears in each of the 50 blocks; preserve the text connector,
+		# token refiner, output heads, and the 8-wide curve-adaLN projection.
+		"condition_proj", "token_refiner", "final_layer",
+		"video_patch_proj", "adaln_t_table", "adaln_proj",
+		"rope", "time_embedder",
+	],
 
 	# ── 新增：DiT 架构 ─────────────────────────────────────────────
 	"auraflow": [
@@ -244,6 +252,7 @@ MODEL_TYPES = [
 	"hunyuan_video (Hunyuan Video)",
 	"hunyuan3d (Hunyuan3D 2.x)",
 	"minimax_h3 (MiniMax H3)",
+	"h3_image (MiniMax H3 Image)",
 	# ── DiT ──
 	"pixart (PixArt Alpha / Sigma)",
 	"hydit (Hunyuan DiT)",
@@ -363,7 +372,7 @@ class TINT4ModelQuantizer:
 	FUNCTION = "quantize"
 	OUTPUT_NODE = True
 	DESCRIPTION = (
-		"Quantize diffusion model to torchao INT4 (v8.1: +16 native DiT types)")
+		"Quantize diffusion model to torchao INT4 (v8.6: + MiniMax H3 Image)")
 
 	def quantize(self, model_name, model_type, enable_quarot, group_size,
 				 device, output_filename, stream_mode=False):

@@ -1,10 +1,11 @@
 
-# TINT4 v1.5 — torchao INT4 Quantized Inference for ComfyUI
+# TINT4 v1.6 — torchao INT4 Quantized Inference for ComfyUI
 
 # > [中文版](README.md)
 
 Built on [torchao](https://github.com/pytorch/ao).  Supports Intel XPU / NVIDIA CUDA / AMD ROCm.
 
+> **v1.6 (MiniMax H3 Image support)**: new `h3_image` architecture. This is a 50-block H3 image DiT without the audio stream; only `qkv_proj / out_proj / fc1 / fc2` in each block (200 layers) are quantized, while `condition_proj / token_refiner / final_layer / video_patch_proj / adaln_proj` stay at source precision. A 40.23 GiB bf16 source becomes **10.98 GiB TINT4**. 1024² six-step text-to-image, reference-image editing, and loading through int4XPUModelLoader were all verified. Quantized layers now use 1×1 placeholders for every key, eliminating the spurious `unet missing` warning.
 > **v1.5 (Fibo 2.0 support)**: new `fibo2` architecture (Bria, 8.226B single-stream DiT: 3584 hidden, 44 main blocks + 2 noise_refiner blocks, fused `w13` (w1+w3) SwiGLU FFN, cross-attention injected at layers 6/14/22/30/38). Excludes `x_embedder / t_embedder / final_layer / adaLN_modulation / perceiver`; the remaining **199 layers** are quantized. gs=128 without QuaRot: a 15.32 GiB source becomes **4.90 GiB** for both Dev and Edit Turbo (wa4 is 4.96 GiB). Inference was verified this round through **int4XPUModelLoader** (Turbo 4 steps at cfg=1, Dev 20 steps at cfg=3); the **TINT4 loader itself has not been tested yet** for this architecture.
 > **v1.4 (MOSS-Image support)**: new `moss_image` architecture (OpenMOSS 5B base DiT, released 2026-10-16; 3072 hidden / 42 blocks, each block having fused `proj.{qkv, o, ffn_up_gate, ffn_down}` Linears without bias). Excludes `video_embedder / text_embedder / time_embedding / shared_block_modulation / video_head_modulation / final_linear_video`; the remaining **168 layers** are quantized. Measured on A770 + torch 2.13 (gs=128, no QuaRot): a 9.47 GiB source becomes **2.93 GiB** for both distilled and base; per-layer relative error **0.1031** (qwen2.1 0.1129 / flux3 0.1116 on the same scale). Inference was verified this round through **int4XPUModelLoader** (30 steps at cfg=3, 1024², same seed, 73.9 s); the **TINT4 loader itself has not been tested yet** for this architecture.
 > **v1.3 (Flux.3 Klein support)**: new `flux3` architecture (f3-image-small: 3072 hidden, 43 blocks = 28 single + 10 content-mode + 5 txt-mode, separate q/k/v). Excludes `emb_in / time_in / ref_time_in / txt_in / final_layer / stream_modulations`; the remaining 258 layers are quantized. Measured on A770 + torch 2.13 (same prompt/seed/8 steps/1024²): 3.08 GB distilled / 3.06 GB non-distilled; pixel distance to bf16 16.7 / 10.0 (wa4 17.1 / 11.8, int8 2.4 on the same setup); loads as `Config: Flux3` with all 258 layers injected.
@@ -346,6 +347,7 @@ Supports all model types: `krea2`, `flux2`, `flux3`, `moss_image`, `fibo2`, `z-i
 | `wan` | ✅ Dedicated loader, verified under AIMDO DLL |
 | `ltx2` | ✅ Dedicated loader, verified under AIMDO DLL |
 | `minimax_h3` | ✅ Full‑model INT4 quantization + LoRA (adaln E‑grid) verified under AIMDO DLL; `time_embedder` excluded from quantization, `adaln_proj` stays quantized |
+| `h3_image` | ✅ Quantization, text-to-image, and reference-image editing verified (50 blocks / 200 layers; 40.23 GiB bf16 → 10.98 GiB; both TINT4 and int4XPUModelLoader pass) |
 | `qwen` / `ernie` / `hidream` / `chroma` / `ideogram4` / `anima` | ⚠️ Exclusion lists configured, awaiting community feedback |
 | `auto` | Empty exclusion list |
 | All legacy WINT4 models verified; TINT4 quantized models steadily progressing... | |

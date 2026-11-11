@@ -135,9 +135,16 @@ def build_weight_placeholders(quant_specs, sd):
             _chosen.append((_base, _sh0, _sh1))
         if len(_chosen) >= 6:
             break
-    for _base, _sh0, _sh1 in _chosen:
-        sd[f"{_base}.weight"] = torch.zeros(_sh0, _sh1, dtype=torch.uint8)
-    return len(_chosen), "(minimal placeholders)"
+    # Give every quantized key a placeholder so ComfyUI does not report the
+    # other 190+ injected layers as "unet missing". Only detection anchors
+    # need their real shape; all remaining placeholders are 1x1 and therefore
+    # still avoid the old multi-GB temporary RAM spike.
+    _chosen_set = set(_chosen)
+    for _spec in _specs_sorted:
+        _shape = (_spec[1], _spec[2]) if _spec in _chosen_set else (1, 1)
+        sd[f"{_spec[0]}.weight"] = torch.zeros(
+            *_shape, dtype=torch.uint8)
+    return len(_specs_sorted), "(minimal placeholders)"
 
 
 def register_aimdo_hooks(diffusion_model):

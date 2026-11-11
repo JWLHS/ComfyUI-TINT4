@@ -949,6 +949,9 @@ def _detect_fallback(sd, key_prefix, metadata=None, *, model_type=None):
 		# MiniMax H3：ComfyUI 原生检测（video_patch_proj + audio_patch_proj），
 		# 排除列表与 comfy-kitchen INT4_CONVROT 保持一致，检测逻辑复用官方实现
 		return _orig_detect(sd, key_prefix, metadata)
+	if model_type == "h3_image":
+		# MiniMax-H3-Image uses the same detection path without audio_patch_proj.
+		return _orig_detect(sd, key_prefix, metadata)
 	# 其余模型（检测入口在排除层中）走 _orig_detect 正常工作
 	return _orig_detect(sd, key_prefix, metadata)
 
@@ -1012,8 +1015,10 @@ class TINT4ModelLoader:
 		is_tint4 = False
 		is_quarot = False
 		quarot_gs = 128
+		source_metadata = {}
 
 		with safe_open(unet_path, framework="pt") as f:
+			source_metadata = f.metadata() or {}
 			for k in f.keys():
 				if k == "__tint4_format__":
 					is_tint4 = True; continue
@@ -1164,7 +1169,7 @@ class TINT4ModelLoader:
 			model = comfy.sd.load_diffusion_model_state_dict(
 				sd, model_options={
 					"custom_operations": comfy.ops.manual_cast,
-				}, metadata={})
+				}, metadata=source_metadata)
 		finally:
 			comfy.model_detection.detect_unet_config = _orig_detect
 			_dwi._lazy_load_from_state_dict = _orig_lazy
